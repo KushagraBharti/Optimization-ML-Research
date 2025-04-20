@@ -31,14 +31,11 @@ This repository implements **Phase 1** of a larger optimization–ML research p
 
 2. **Create & Activate Env** 
    ```bash
-   conda env create -f environment.yml
-   conda activate drones_project```
-
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate```
+   python -m venv venv
+   .\venv\Scripts\Activate.ps1```
 
 2. **Install Dependencies** 
    ```bash
-   pip install --upgrade pip
-   pip install -r requirements.txt```
+   python.exe -m pip install --upgrade pip
+   pip install -r requirements.txt
+   $env:PYTHONPATH = $PWD```
