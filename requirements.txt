@@ -1,6 +1,15 @@
+# Core
+torch
 gym
 stable-baselines3
-torch
 numpy
+pandas
 matplotlib
-plotly
+
+# Geometry & misc (for later phases)
+shapely
+networkx
+
+# Development & testing
+pytest
+flake8

@@ -1,15 +1,22 @@
-# Use python:3.8-slim as the base image
-FROM python:3.8-slim
+# Dockerfile
 
-# Copy requirements.txt and install dependencies
-COPY requirements.txt /drones_project/requirements.txt
-RUN pip install -r /drones_project/requirements.txt
+FROM python:3.12-slim
 
-# Copy the project files into the container
-COPY . /drones_project
+# system dependencies (if needed)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      build-essential \
+      git \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory to /drones_project
-WORKDIR /drones_project
+WORKDIR /app
 
-# Define the entry point for the container
-ENTRYPOINT ["python", "src/main.py"]
+# copy requirements and install
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# copy project
+COPY . .
+
+# default shell
+CMD ["bash"]

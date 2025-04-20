@@ -1,51 +1,44 @@
-# Optimization-ML-Research
-Problem 1 first with Hybrid Supervised + RL (Phase 1), then Neural Combinatorial Optimization (Phase 2). Afterwards, move to Problem 2 with two analogous approaches (Phases 3 and 4).
+# Optimization‑ML‑Research
 
-## Project Setup Instructions
+**Phase 1: Hybrid Supervised + RL for Covering Line Segments with Drone Tours**
 
-1. Clone the repository:
+---
+
+## 📚 Overview
+
+This repository implements **Phase 1** of a larger optimization–ML research project:
+
+1. **Classical Solvers**  
+   - **GS**: Greedy strategy to minimize number of tours  
+   - **DP**: Dynamic‑programming to minimize total distance  
+2. **Data Generation**  
+   - Synthetic, random segment instances
+3. **Supervised Pre‑training**  
+   - Pointer‑network to imitate DP tours  
+4. **RL Fine‑tuning**  
+   - PPO agent to adapt to dynamic changes  
+5. **Evaluation**  
+   - Compare GS, DP and RL on held‑out instances  
+
+---
+
+## 🔧 Setup
+
+1. **Clone & enter repo**
    ```bash
    git clone https://github.com/KushagraBharti/Optimization-ML-Research.git
-   cd Optimization-ML-Research
-   ```
+   cd Optimization-ML-Research```
 
-2. Create a virtual environment and activate it:
+2. **Create & Activate Env** 
+   ```bash
+   conda env create -f environment.yml
+   conda activate drones_project```
+
    ```bash
    python3 -m venv venv
-   source venv/bin/activate
-   ```
+   source venv/bin/activate```
 
-3. Install the required dependencies:
+2. **Install Dependencies** 
    ```bash
-   pip install -r requirements.txt
-   ```
-
-## Usage Instructions for the Docker Container
-
-1. Build the Docker image:
-   ```bash
-   docker build -t optimization-ml-research .
-   ```
-
-2. Run the Docker container:
-   ```bash
-   docker run -it --rm optimization-ml-research
-   ```
-
-## Project Structure
-
-```
-/drones_project
-  /data - raw and processed data
-  /src
-  /envs - Gym environment code
-  /models - network definitions
-  /solvers - classical GS+DP implementations
-  /train - training scripts
-  /eval - evaluation notebooks
-  /docs
-  /notebooks
-requirements.txt
-README.md
-Dockerfile
-```
+   pip install --upgrade pip
+   pip install -r requirements.txt```
