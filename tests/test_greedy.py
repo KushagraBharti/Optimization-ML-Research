@@ -1,28 +1,23 @@
-import math
 import pytest
 from coverage_planning.greedy import greedy_min_tours
 from coverage_planning.utils import tour_length
 
-def test_all_in_one_tour():
-    segments = [(0,1), (2,3), (4,5)]
+def test_greedy_unsorted_segments():
+    # unsorted input order
+    segs = [(5,6),(1,2),(3,4)]
     h = 0.0
-    # battery just enough to cover from 0 to 5
-    L = tour_length(0, 5, h) + 1e-6
-    count, tours = greedy_min_tours(segments, h, L)
+    L = tour_length(1,6,h) + 1e-6
+    count, tours = greedy_min_tours(segs, h, L)
     assert count == 1
-    p, q = tours[0]
-    assert p <= 0 and q >= 5
+    # tour must cover range [1,6]
+    p,q = tours[0]
+    assert p <= 1 and q >= 6
 
-def test_two_tours_needed():
-    segments = [(0,4), (8,12)]
+@pytest.mark.parametrize("segs,L,expected", [
+    ([(0,1),(1,2),(2,3)], 1.001, 3),    # tiny battery → each segment separately
+    ([(0,2),(1,3)], 2.5, 2),            # partial overlap
+])
+def test_greedy_edge_cases(segs, L, expected):
     h = 0.0
-    L = 10.0
-    count, tours = greedy_min_tours(segments, h, L)
-    assert count == 2
-
-def test_both_sides_separate_tours():
-    segments = [(-3, -1), (1, 3)]
-    h = 0.0
-    L = 6.0  # can't bridge from -3 to 3 in one tour
-    count, tours = greedy_min_tours(segments, h, L)
-    assert count == 2
+    count, _ = greedy_min_tours(segs, h, L)
+    assert count == expected

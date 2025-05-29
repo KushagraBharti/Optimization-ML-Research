@@ -1,4 +1,7 @@
 # coverage_planning/__init__.py
+
+# robust
+
 from .utils import tour_length, find_maximal_p
 from .greedy import greedy_min_tours
 from .gsp import greedy_min_length_one_segment
