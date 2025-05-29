@@ -1,3 +1,4 @@
 .pytest_cache
 pytest_cache
 __pycache__
+coverage_planning.egg-info
