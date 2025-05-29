@@ -2,13 +2,13 @@ import math
 
 # === Environment Configuration ===
 coverage_line_height = 2.0  # y = h
-battery_limit = 18.0        # L
-segments = [                # List of segments for GS: (a, b)
+battery_limit = 13.0        # Maximum tour length (L)
+segments = [                # Segments for MinTours: list of (a, b)
     (1.0, 2.0),
     (4.0, 5.0),
     (7.0, 8.0),
-    (9.0, 10.0),
 ]
+
 single_segment = (2.0, 6.0)  # Segment for GSP: (a, b)
 
 # === Helper Functions ===

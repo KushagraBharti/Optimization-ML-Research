@@ -4,7 +4,7 @@ import math
 from typing import List, Tuple
 
 # Toggle for debug printing
-VERBOSE = True
+VERBOSE = False
 EPS = 1e-9
 
 def log(*args, **kwargs):
