@@ -15,8 +15,6 @@ A complete reference implementation of the paper
 
 
 ```bash
-git clone <repo>
-cd Optimization-ML-Research
 pip install -e .
 ```
 
