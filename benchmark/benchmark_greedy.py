@@ -1,4 +1,5 @@
 # benchmarks/benchmark_greedy.py
+
 import time
 import random
 from coverage_planning.greedy import greedy_min_tours
@@ -19,7 +20,8 @@ def run_benchmark():
         L = tour_length(x_min, x_max, h) + 1e-6
 
         start = time.time()
-        count, _ = greedy_min_tours(segs, h, L, mode="two_pointer")
+        # <-- drop the 'mode' argument here:
+        count, _ = greedy_min_tours(segs, h, L)
         elapsed = time.time() - start
         print(f" n={n:6d} → tours={count:4d}, time={elapsed:.4f}s")
 
