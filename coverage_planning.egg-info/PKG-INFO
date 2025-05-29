@@ -1,7 +1,0 @@
-Metadata-Version: 2.1
-Name: coverage_planning
-Version: 0.1.0
-Summary: Oracles and baselines for 1D drone-coverage planning
-Author: Kushagra Bharti
-Requires-Python: >=3.12.7
-License-File: LICENSE
