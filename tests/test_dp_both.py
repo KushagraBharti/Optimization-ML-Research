@@ -37,3 +37,14 @@ def test_dp_full_line_one_side_shortcuts(segs, reflect):
     else:
         dp_ref, _ = dp_one_side(segs, h, L)
     assert abs(cost - dp_ref[-1]) < 1e-6
+
+
+def test_dp_full_line_with_mid_and_others():
+    """Ensure mid segments don't cause other segments to be ignored."""
+    segments = [(-1.0, 1.0), (2.0, 4.0)]
+    h = 0.0
+    L = tour_length(-1.0, 4.0, h) + 1e-6
+    cost = dp_full_line(segments, h, L)
+    # Optimal is one tour covering the full range
+    expected = tour_length(-1.0, 4.0, h)
+    assert abs(cost - expected) < 1e-6

@@ -27,22 +27,41 @@ def dp_full_line(
     right = [( a,  b) for (a, b) in segments if a >  0]
     mid   = [( a,  b) for (a, b) in segments if a <= 0 <= b]
 
-    if mid:
+    # Only shortcut to the one-sided DP if every segment crosses the origin.
+    # The previous implementation returned early whenever *any* crossing
+    # segment was present, which incorrectly ignored additional left/right
+    # segments.  This led to an underestimated cost.
+    if mid and not left and not right:
         log("Segments crossing projection (cover via one-sided DP):", mid)
         dp_mid, _ = dp_one_side(mid, h, L, side_label="MID")
         result = dp_mid[-1]
         log(f"Final DP Value = {result:.4f} (all segments cross origin)\n")
         return result
 
-    # Pure one-sided shortcuts
-    if not left:
+    # Pure one-sided shortcuts (only when the other side *and* mid are empty)
+    if not left and not mid:
         log("No left-side segments; reduce to one-sided on RIGHT")
         result = dp_one_side(right, h, L, side_label="RIGHT")[0][-1]
         log(f"Final DP Value = {result:.4f}\n")
         return result
-    if not right:
+    if not right and not mid:
         log("No right-side segments; reduce to one-sided on LEFT")
         result = dp_one_side(left, h, L, side_label="LEFT")[0][-1]
+        log(f"Final DP Value = {result:.4f}\n")
+        return result
+
+    # If only one side exists alongside mid segments, merge them and run the
+    # one-sided DP on the combined set.
+    if not left:
+        combined = mid + right
+        log("No left-side segments; solve mid+right via one-sided DP")
+        result = dp_one_side(combined, h, L, side_label="RIGHT+MID")[0][-1]
+        log(f"Final DP Value = {result:.4f}\n")
+        return result
+    if not right:
+        combined = left + mid
+        log("No right-side segments; solve mid+left via one-sided DP")
+        result = dp_one_side(combined, h, L, side_label="LEFT+MID")[0][-1]
         log(f"Final DP Value = {result:.4f}\n")
         return result
 
