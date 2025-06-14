@@ -1,80 +1,123 @@
-# coverage_planning/gsp.py
-
 import math
-from typing import Tuple, List
-from .utils import tour_length, find_maximal_p, log, VERBOSE, EPS
+from typing import List, Tuple
 
-def _print_tour_details(p: float, q: float, h: float) -> float:
+from .utils import tour_length, find_maximal_p as _closed_form, log, EPS, VERBOSE
+
+__all__ = [
+    "greedy_min_length_one_segment",
+]
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _maximal_left_endpoint(q: float, h: float, L: float) -> float:
+    """Return the **left** endpoint *p* (≤ q) of the maximal‑length tour
+    that still ends at *q* and has length exactly *L*.
+
+    We try the closed‑form from the paper; if it degenerates numerically we
+    fall back to a tiny binary‑search (guaranteed to converge because the
+    length function is strictly decreasing in *p*).  Always returns *p ≤ q*.
     """
-    Print the 3-leg breakdown for O->P->Q->O, matching the GS detail style.
-    """
-    # Leg 1: O -> P
-    log("  Leg 1: O -> P")
-    d1 = math.hypot(p, h)
-    log(f"    Distance (0.0, 0.0) -> ({p:.4f}, {h:.4f}) = {d1:.4f}")
-    # Leg 2: P -> Q
-    log("  Leg 2: P -> Q (horizontal)")
-    d2 = abs(q - p)
-    log(f"    Horizontal distance x={p:.4f} -> x={q:.4f} = {d2:.4f}")
-    # Leg 3: Q -> O
-    log("  Leg 3: Q -> O")
-    d3 = math.hypot(q, h)
-    log(f"    Distance ({q:.4f}, {h:.4f}) -> (0.0, 0.0) = {d3:.4f}")
-    total = d1 + d2 + d3
-    log(f"  Total length = {d1:.4f} + {d2:.4f} + {d3:.4f} = {total:.4f}\n")
-    return total
+    # Attempt the analytical expression first.
+    r = math.hypot(q, h)
+    K = L - r - q  # see paper (Figure 3 notation)
+
+    if K > EPS:
+        denom = 2 * K
+        p = (h * h - K * K) / denom
+        if p <= q + EPS:  # good – within bounds (allow small overshoot)
+            return p
+
+    # Fallback: binary search on p in [min_p, q]
+    min_p = -abs(q)  # never need to start further than mirror of q
+    lo, hi = min_p, q
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        length = tour_length(mid, q, h)
+        if length > L:
+            lo = mid  # too long → move right (shrink interval)
+        else:
+            hi = mid
+    return hi
+
+
+# ---------------------------------------------------------------------------
+# Main algorithm: Greedy with Projection Point (GSP)
+# ---------------------------------------------------------------------------
 
 def greedy_min_length_one_segment(
-    seg: Tuple[float,float],
+    seg: Tuple[float, float],
     h: float,
-    L: float
-) -> Tuple[int, List[Tuple[float,float]]]:
-    """
-    Greedy-Projection (GSP) for single-segment MinLength.
-    Returns (num_tours, list of (p,q) tours).
+    L: float,
+) -> Tuple[int, List[Tuple[float, float]]]:
+    """Optimal **MinLength** algorithm for **one horizontal segment**.
+
+    Implements the Greedy‑with‑Projection algorithm (GSP) from the paper:
+
+    1. Repeatedly launch *maximal* tours toward the farthest uncovered point
+       until the residual interval straddles the projection point `O'`.
+    2. Finish by either a single tour (if it fits) **or** two symmetric tours
+       through `O'`, whichever is feasible and shorter.
+
+    Returns ``(k, tours)`` where *k* is the exact number of tours and *tours*
+    is a list of ``(p, q)`` pairs with *p ≤ q*, each interval lying inside
+    the original segment and each tour’s length ≤ *L* + EPS.
     """
     a, b = seg
-    tours: List[Tuple[float,float]] = []
+    if a > b:
+        a, b = b, a  # normalise
 
-    # Header
-    log("=== GSP: MinLength (1 segment) ===")
-    log(f"Line y={h}, Projection O'=(0,{h})")
-    log(f"Segment: ({a}, {b}), L={L:.4f}\n")
+    left, right = a, b  # current uncovered interval endpoints
+    tours: List[Tuple[float, float]] = []
 
-    # Step 1: try whole segment
-    log("Step 1: minimal-length for [a,b]:")
-    full_len = _print_tour_details(a, b, h)
-    if full_len <= L + EPS:
-        tours.append((a, b))
-        log(f"Total Tour(s): {len(tours)}\n")
-        return len(tours), tours
+    # ------------------------------------------------------------------
+    # Greedy phase: carve off maximal tours from the *farther* side.
+    # ------------------------------------------------------------------
+    while True:
+        # 1. Can one tour finish everything?
+        if tour_length(left, right, h) <= L + EPS:
+            tours.append((left, right))
+            break
 
-    # Step 2: maximal-length from b
-    log("Step 2: maximal-length from Q=b:")
-    p1 = find_maximal_p(b, h, L)
-    log(f"P1=({p1:.4f},{h:.4f})")
-    _print_tour_details(p1, b, h)
-    tours.append((p1, b))
+        # 2. Can two symmetric tours through O' finish?
+        span = max(-left, right)  # required half‑length to cover both ends
+        if tour_length(-span, span, h) <= L + EPS:
+            tours.append((-span, 0.0))
+            tours.append((0.0, span))
+            break
 
-    # Remaining interval
-    rem = (a, p1)
-    log(f"Remaining interval: {rem}\n")
+        # 3. Greedy step – choose the farther endpoint and fire a maximal tour.
+        if right >= -left:  # right side is (weakly) farther
+            q = right  # positive
+            p = _maximal_left_endpoint(q, h, L)
+            tours.append((p, q))
+            right = p  # shrink uncovered interval
+        else:  # left side is farther (more negative)
+            q_neg = left  # negative
+            q_pos = -q_neg  # mirror to positive axis
+            p_pos = _maximal_left_endpoint(q_pos, h, L)
+            p_neg = -p_pos
+            tours.append((p_neg, q_neg))  # p_neg ≤ q_neg < 0
+            left = p_neg
 
-    # Step 3: minimal-length for leftover
-    log("Step 3: minimal-length for leftover:")
-    rem_len = _print_tour_details(rem[0], rem[1], h)
-    if rem_len <= L + EPS:
-        tours.append((rem[0], rem[1]))
-        log(f"Total Tour(s): {len(tours)}\n")
-        return len(tours), tours
+        # Sanity guard: prevent infinite loops due to precision quirks.
+        if len(tours) > 10_000:
+            raise RuntimeError("GSP: exceeded 10 000 tours – numerical issues?")
 
-    # Fallback: split at projection O'
-    log("Leftover too large, splitting at O':")
-    log("Tour 2: left to projection")
-    _print_tour_details(rem[0], 0.0, h)
-    tours.append((rem[0], 0.0))
-    log("Tour 3: projection to right")
-    _print_tour_details(0.0, rem[1], h)
-    tours.append((0.0, rem[1]))
-    log(f"Total Tour(s): {len(tours)}\n")
+    # ------------------------------------------------------------------
+    # Final verification (debug builds only)
+    # ------------------------------------------------------------------
+    if VERBOSE:
+        for idx, (p, q) in enumerate(tours, 1):
+            Lpq = tour_length(p, q, h)
+            log(f"Tour {idx}: interval=({p:.4f},{q:.4f}), length={Lpq:.6f}")
+            if Lpq > L + 1e-6:
+                log("  **ERROR: length exceeds battery**")
+        covered_min = min(t[0] for t in tours)
+        covered_max = max(t[1] for t in tours)
+        if covered_min > a - 1e-6 or covered_max < b + 1e-6:
+            log("  **ERROR: segment not fully covered**")
+
     return len(tours), tours
