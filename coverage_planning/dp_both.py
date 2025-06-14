@@ -2,140 +2,125 @@ import math
 from typing import List, Tuple, Dict
 
 from .utils import tour_length, log, EPS
-from .dp_1side import dp_one_side, generate_candidates_one_side
+from .dp_1side import dp_one_side
 
 __all__ = [
     "dp_full_line",
 ]
 
 # ---------------------------------------------------------------------------
-#  Min‑Length on both sides of the projection point O′ (general case).
-#  This is Algorithm 4 from the paper – rebuilt *faithfully*.
+#  Min‑Length on both sides of the projection point O′ (Algorithm 4).
 # ---------------------------------------------------------------------------
-#  High‑level outline
-#  •   Split the instance at x = 0.  A segment that straddles 0 is split into
-#      (a,0) on the left and (0,b) on the right; a zero‑length fragment is
-#      discarded.
-#  •   Reflect the left side to x ≥ 0 so we can reuse the one‑sided DP.
-#  •   Run the one‑sided DP twice on each half: once forward to obtain the
-#      prefix‑cost table Σ_left / Σ_right, and once in a mirrored coordinate
-#      system to obtain the suffix‑cost table 𝚺̃_left / 𝚺̃_right.
-#      (The paper calls these the “top–down” variants.)
-#  •   Cost without a bridge is Σ_left(∞) + Σ_right(∞).
-#  •   Otherwise, exactly one *maximal* bridge‑tour crosses O′.  For every
-#      candidate pair (p,q) that can serve as that bridge we evaluate
-#         Σ_left(p) + len(p,q) + 𝚺̃_right(q)
-#      and keep the minimum.
+#  Notation matches the paper:
+#     Σ_left(p)   – optimal cost to cover everything *left* of, and including,
+#                   candidate p on the (reflected) left side.
+#     Σ̃_right(q) – optimal cost to cover everything *right* of, and including,
+#                   q on the right side (suffix table).
 # ---------------------------------------------------------------------------
 
 
-# ---------------------------------------------------------------------------
-#  Helpers
-# ---------------------------------------------------------------------------
+# -- helpers ---------------------------------------------------------------
 
 def _split_and_reflect(segments: List[Tuple[float, float]]) -> Tuple[List[Tuple[float, float]], List[Tuple[float, float]]]:
-    """Return (left_reflected, right) after splitting straddling segments.
+    """Split any segment that straddles x=0 and reflect the left half.
 
-    • *left_reflected* lives entirely in x ≥ 0 and is obtained by the mapping
-      (a,b)  ↦  (−b, −a)  for every original piece that lies in x ≤ 0.
-    • *right* keeps its original coordinates (a,b) with a ≥ 0.
+    Returns (left_reflected, right) where both lists lie entirely in x≥0.
     """
-    left_reflected: List[Tuple[float, float]] = []
-    right:          List[Tuple[float, float]] = []
+    left_ref: List[Tuple[float, float]] = []
+    right:    List[Tuple[float, float]] = []
 
     for a, b in segments:
-        if b <= 0.0:                      # fully left
-            left_reflected.append((-b, -a))
-        elif a >= 0.0:                    # fully right
+        if b <= 0:                      # fully left → reflect
+            left_ref.append((-b, -a))
+        elif a >= 0:                    # fully right
             right.append((a, b))
-        else:                             # straddles 0 → split
-            if a < 0.0:
-                left_reflected.append((0.0 - b, 0.0 - a))  # (−b, −0) ≡ (−b,0)
-            if b > 0.0:
+        else:                           # straddles 0 → split
+            if a < 0:
+                left_ref.append((0.0 - b, 0.0))       # (−b,0)
+            if b > 0:
                 right.append((0.0, b))
 
-    # normalise: discard zero‑length fragments
-    left_reflected = [(l, r) for (l, r) in left_reflected if r - l > EPS]
-    right          = [(l, r) for (l, r) in right          if r - l > EPS]
-
-    # sort by left endpoint (needed by dp_one_side)
-    left_reflected.sort(key=lambda seg: seg[0])
-    right.sort(key=lambda seg: seg[0])
-    return left_reflected, right
+    # remove zero‑length leftovers & sort
+    left_ref  = [(l, r) for (l, r) in left_ref if r - l > EPS]
+    right     = [(l, r) for (l, r) in right    if r - l > EPS]
+    left_ref.sort(key=lambda s: s[0])
+    right.sort(key=lambda s: s[0])
+    return left_ref, right
 
 
-def _suffix_dp_right(segments_right: List[Tuple[float, float]], h: float, L: float) -> Dict[float, float]:
-    """Compute Σ̃_right(q): min cost to cover *from* q to the far right.
-
-    We mirror the right‑side instance around its rightmost endpoint *B* so that
-    it becomes a left‑aligned instance and reuse the one‑sided DP.  The mapping
-        x  ↦  B − x
-    sends the interval [q,B] to [0, B−q].
-    """
-    if not segments_right:
+def _suffix_dp_right(right: List[Tuple[float, float]], h: float, L: float) -> Dict[float, float]:
+    """Return Σ̃_right: suffix‑cost table for the right side."""
+    if not right:
         return {}
 
-    B = segments_right[-1][1]  # far right endpoint
+    B = right[-1][1]
+    mirror = [(B - b, B - a) for (a, b) in right]
+    mirror.sort(key=lambda s: s[0])
 
-    segs_mirror = [(B - b, B - a) for (a, b) in segments_right]
-    segs_mirror.sort(key=lambda s: s[0])
-
-    C_mirror, dp_mirror = dp_one_side(segs_mirror, h, L, side_label="RIGHT‑SUFFIX")
-
-    # Build q ↦ suffix‑cost dictionary
+    C_m, dp_m = dp_one_side(mirror, h, L)  # prefix cost in mirrored world
     suffix: Dict[float, float] = {}
-    for c_m, cost in zip(C_mirror, dp_mirror):
+    for c_m, cost in zip(C_m, dp_m):
         q = B - c_m
         suffix[q] = cost
     return suffix
 
 
-# ---------------------------------------------------------------------------
-#  Main procedure
-# ---------------------------------------------------------------------------
+# -- main -----------------------------------------------------------------
 
 def dp_full_line(segments: List[Tuple[float, float]], h: float, L: float) -> float:
-    """Return the *exact* minimum total flight length for covering *segments*.
+    """Exact minimum total flight length for an arbitrary two‑sided instance.
 
-    Implements Algorithm 4 (both‑side dynamic programme) from the paper, with
-    the same variable names where possible.
+    The helper `dp_one_side` in this codebase has the historical signature:
+        (dp_vals: List[float], backptr: Dict[float,str])
+    where the keys of *backptr* are exactly the candidate points **C** in
+    ascending order and the *dp_vals* list is aligned with that order.
+
+    We therefore reconstruct **C** by sorting the keys of *backptr* whenever
+    needed.  If a newer dp_one_side variant returns (C, dp_vals) we detect that
+    shape and adapt automatically.  This keeps Algorithm 4 robust to either
+    signature without touching the one‑sided module.
     """
 
-    # ----------------  Phase 0 – Pre‑processing  ---------------------------
+    # Phase 0 – preprocessing
     left_ref, right = _split_and_reflect(segments)
-
     log("Left (reflected):", left_ref)
     log("Right:", right, "\n")
 
-    # Quick exits when the instance is one‑sided
+    # One‑sided shortcuts
+    ret_r = dp_one_side(right, h, L)
     if not left_ref:
-        _, dp_right = dp_one_side(right, h, L, side_label="RIGHT‑ONLY")
-        return dp_right[-1]
+        dp_r_vals = ret_r[0] if isinstance(ret_r[0], list) else ret_r[1]
+        return dp_r_vals[-1]
+
+    ret_l = dp_one_side(left_ref, h, L)
     if not right:
-        _, dp_left = dp_one_side(left_ref, h, L, side_label="LEFT‑ONLY")
-        return dp_left[-1]
+        dp_l_vals = ret_l[0] if isinstance(ret_l[0], list) else ret_l[1]
+        return dp_l_vals[-1]
 
-    # ----------------  Phase 1 – Independent one‑sided DPs  ---------------
-    C_l, dp_l_prefix = dp_one_side(left_ref, h, L, side_label="LEFT")
-    C_r, dp_r_prefix = dp_one_side(right,    h, L, side_label="RIGHT")
+    # Phase 1 – prefix tables on each side (handle either return shape)
+    if isinstance(ret_l[0], list):
+        dp_l_vals, back_l = ret_l
+        C_l = sorted(back_l.keys())
+    else:  # new shape (C_l, dp_l_vals, ...)
+        C_l, dp_l_vals = ret_l[:2]
 
-    Σ_left  = {c: v for c, v in zip(C_l, dp_l_prefix)}
-    Σ_right = {c: v for c, v in zip(C_r, dp_r_prefix)}   # prefix – not yet used
+    if isinstance(ret_r[0], list):
+        dp_r_vals, back_r = ret_r
+        C_r = sorted(back_r.keys())
+    else:
+        C_r, dp_r_vals = ret_r[:2]
 
-    # Cost if no tour crosses the origin
-    cost_no_bridge = dp_l_prefix[-1] + dp_r_prefix[-1]
+    Σ_left = {c: v for c, v in zip(C_l, dp_l_vals)}
+    cost_no_bridge = dp_l_vals[-1] + dp_r_vals[-1]
 
-    # ----------------  Phase 2 – Suffix table for the right side ----------
+    # Phase 2 – suffix table on right
     Σ̃_right = _suffix_dp_right(right, h, L)
 
-    # ----------------  Phase 3 – Enumerate *maximal* bridge candidates ----
+    # Phase 3 – evaluate maximal bridge candidates
     best = cost_no_bridge
 
-    # Pre‑compute dictionary for quick index lookup in C_r
-    idx_r = {c: i for i, c in enumerate(C_r)}
-
     for i_p, p in enumerate(C_l):
-        # Farthest q we can reach with battery L (binary search)
+        # binary search for farthest q with feasible tour_length(p,q) ≤ L
         lo, hi = 0, len(C_r) - 1
         while lo <= hi:
             mid = (lo + hi) // 2
@@ -144,24 +129,17 @@ def dp_full_line(segments: List[Tuple[float, float]], h: float, L: float) -> flo
             else:
                 hi = mid - 1
         if hi < 0:
-            continue  # cannot pair this p with anything
+            continue
         q = C_r[hi]
 
-        # ---- maximality checks ----
-        # 1. Right‑maximal: cannot extend q to the next candidate
+        # maximality checks
         if hi + 1 < len(C_r) and tour_length(p, C_r[hi + 1], h) <= L + EPS:
-            continue
-        # 2. Left‑maximal: cannot extend p to the previous candidate
+            continue  # not right‑maximal
         if i_p > 0 and tour_length(C_l[i_p - 1], q, h) <= L + EPS:
-            continue
+            continue  # not left‑maximal
 
-        # ---- Total cost with this bridge ----
-        cost_left  = dp_l_prefix[i_p]
-        cost_bridge = tour_length(p, q, h)
-        cost_right = Σ̃_right.get(q, math.inf)
-
-        total = cost_left + cost_bridge + cost_right
-        if total < best:
-            best = total
+        cost = dp_l_vals[i_p] + tour_length(p, q, h) + Σ̃_right.get(q, math.inf)
+        if cost < best:
+            best = cost
 
     return best
