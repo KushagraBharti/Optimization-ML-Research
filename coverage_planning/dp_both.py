@@ -1,88 +1,80 @@
 # coverage_planning/dp_both.py
+"""
+Full-line exact MinLength DP (Algorithm 4) using the new one-sided API.
+"""
 
-import bisect
+from __future__ import annotations
+import math
 from typing import List, Tuple
-from .dp_1side import dp_one_side, generate_candidates_one_side
-from .utils import tour_length, log, VERBOSE, EPS
 
-def dp_full_line(
-    segments: List[Tuple[float, float]],
-    h: float,
-    L: float
-) -> float:
-    """
-    Full-line MinLength DP (Algorithm 4).
-    Returns the optimal total travel length covering all segments.
-    """
-    # Header
-    sep = "=" * 26
-    log(sep)
-    log("ALGORITHM 4: General DP (Both Sides)")
-    log(sep)
-    log(f"All segments: {segments}")
-    log(f"Line y = {h}, Battery limit L = {L}\n")
+from .utils import tour_length, log, EPS
+from .dp_1side import dp_one_side
 
-    # Partition
-    left  = [(-b, -a) for (a, b) in segments if b <  0]
-    right = [( a,  b) for (a, b) in segments if a >  0]
-    mid   = [( a,  b) for (a, b) in segments if a <= 0 <= b]
+__all__ = ["dp_full_line"]
 
-    if mid:
-        log("Segments crossing projection (cover via one-sided DP):", mid)
-        dp_mid, _ = dp_one_side(mid, h, L, side_label="MID")
-        result = dp_mid[-1]
-        log(f"Final DP Value = {result:.4f} (all segments cross origin)\n")
-        return result
 
-    # Pure one-sided shortcuts
-    if not left:
-        log("No left-side segments; reduce to one-sided on RIGHT")
-        result = dp_one_side(right, h, L, side_label="RIGHT")[0][-1]
-        log(f"Final DP Value = {result:.4f}\n")
-        return result
+# --------------------------------------------------------------------------- #
+def _split_reflect(
+    segments: List[Tuple[float, float]]
+) -> Tuple[List[Tuple[float, float]], List[Tuple[float, float]]]:
+    """Return (left_reflected, right) with all coords ≥ 0."""
+    left, right = [], []
+    for a, b in segments:
+        if b <= 0:
+            left.append((-b, -a))
+        elif a >= 0:
+            right.append((a, b))
+        else:  # straddles 0
+            left.append((0.0, -a))
+            right.append((0.0, b))
+    left = [(l, r) for l, r in left if r - l > EPS]
+    right = [(l, r) for l, r in right if r - l > EPS]
+    left.sort(key=lambda s: s[0])
+    right.sort(key=lambda s: s[0])
+    return left, right
+
+
+# --------------------------------------------------------------------------- #
+def dp_full_line(segments: List[Tuple[float, float]], h: float, L: float) -> float:
+    left_ref, right = _split_reflect(segments)
+    log("Left (reflected):", left_ref)
+    log("Right:", right, "\n")
+
+    # One-sided shortcuts
+    if not left_ref:
+        pref, *_ = dp_one_side(right, h, L)
+        return pref[-1]
     if not right:
-        log("No right-side segments; reduce to one-sided on LEFT")
-        result = dp_one_side(left, h, L, side_label="LEFT")[0][-1]
-        log(f"Final DP Value = {result:.4f}\n")
-        return result
+        pref, *_ = dp_one_side(left_ref, h, L)
+        return pref[-1]
 
-    # Solve each side independently
-    log(f"Left-side segments (reflected to +x): {left}")
-    dp_l, _ = dp_one_side(left, h, L, side_label="LEFT")
-    log(f"  Left-side cost = {dp_l[-1]:.4f}\n")
+    # Run DP on each side
+    pref_L, _suf_L, C_l = dp_one_side(left_ref, h, L)
+    pref_R, suf_R, C_r = dp_one_side(right, h, L)
 
-    log(f"Right-side segments: {right}")
-    dp_r, _ = dp_one_side(right, h, L, side_label="RIGHT")
-    log(f"  Right-side cost = {dp_r[-1]:.4f}\n")
+    Σ_left = {c: cost for c, cost in zip(C_l, pref_L)}
+    Σ̃_right = {c: cost for c, cost in zip(C_r, suf_R)}
 
-    # No-bridge cost
-    cost_no = dp_l[-1] + dp_r[-1]
-    log(f"No-bridge cost = {dp_l[-1]:.4f} + {dp_r[-1]:.4f} = {cost_no:.4f}\n")
+    best = pref_L[-1] + pref_R[-1]  # no bridge
 
-    # Candidate sets for bridge trials
-    C_l, _ = generate_candidates_one_side(left,  h, L)
-    C_r, _ = generate_candidates_one_side(right, h, L)
-    log(f"Candidates Left: {C_l}")
-    log(f"Candidates Right: {C_r}\n")
-
-    # Try bridges
-    best = cost_no
+    # Enumerate maximal bridge endpoints
     for i, p in enumerate(C_l):
-        # find largest j in C_r with tour_length(p, C_r[j]) <= L
-        lo, hi = 0, len(C_r) - 1
-        while lo <= hi:
-            mid = (lo + hi) // 2
-            if tour_length(p, C_r[mid], h) <= L + EPS:
-                lo = mid + 1
-            else:
-                hi = mid - 1
-        if hi >= 0:
-            q = C_r[hi]
-            cand = dp_l[i] + tour_length(p, q, h) + dp_r[hi]
-            log(f"Trying bridge: p={p:.4f}, q={q:.4f} → tour={tour_length(p, q, h):.4f}, total={cand:.4f}")
-            if cand < best:
-                best = cand
+        # farthest q feasible with p
+        j_hi = max(
+            j
+            for j, q in enumerate(C_r)
+            if tour_length(p, q, h) <= L + EPS
+        )
+        q = C_r[j_hi]
 
-    # Final result
-    log(f"\nFinal Optimal Cost = {best:.4f} (with or without bridge)\n")
+        # Ensure maximality (cannot extend either side)
+        if j_hi + 1 < len(C_r) and tour_length(p, C_r[j_hi + 1], h) <= L + EPS:
+            continue
+        if i > 0 and tour_length(C_l[i - 1], q, h) <= L + EPS:
+            continue
+
+        cost = Σ_left[p] + tour_length(p, q, h) + Σ̃_right[q]
+        if cost < best:
+            best = cost
+
     return best

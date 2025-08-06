@@ -1,39 +1,68 @@
+# tests/test_dp_both.py
+"""
+Unit tests for `coverage_planning.dp_both` given the new dp_one_side API.
+"""
+
+from __future__ import annotations
+import math
+import random
 import pytest
+
 from coverage_planning.dp_both import dp_full_line
 from coverage_planning.dp_1side import dp_one_side
 from coverage_planning.utils import tour_length
 
-def test_dp_full_line_only_left():
-    segments = [(-5.0, -3.0), (-2.0, -1.0)]
-    h, L = 0.0, 10.0
-    cost = dp_full_line(segments, h, L)
-    # Should equal one-sided DP on the reflected left segments
-    reflected = [(-b, -a) for (a, b) in segments]
-    dp_ref, _ = dp_one_side(reflected, h, L)
-    assert abs(cost - dp_ref[-1]) < 1e-6
 
-def test_dp_full_line_bridge():
+def _reflect(segs):
+    """Reflect left-hand segments to the right half-plane."""
+    return [(-b, -a) for (a, b) in segs]
+
+
+# ---------------------------------------------------------------------------
+#  Pure one-side shortcut cases
+# ---------------------------------------------------------------------------
+@pytest.mark.parametrize(
+    "segments,reflect",
+    [
+        ([(2.0, 4.0), (6.0, 7.0)], False),
+        ([(-5.0, -3.0), (-2.0, -1.0)], True),
+    ],
+)
+def test_one_side_shortcut(segments, reflect):
+    h, L = 0.0, 1e6
+    full_cost = dp_full_line(segments, h, L)
+
+    oracle_segs = _reflect(segments) if reflect else segments
+    prefix, *_ = dp_one_side(oracle_segs, h, L)
+    assert math.isclose(full_cost, prefix[-1], rel_tol=1e-9)
+
+
+# ---------------------------------------------------------------------------
+#  Bridge tour spans the whole line
+# ---------------------------------------------------------------------------
+def test_whole_line_bridge():
     segments = [(-3.0, -1.0), (1.0, 3.0)]
     h = 0.0
-    # battery long enough to cover from -3 to 3 in one tour
     L = tour_length(-3.0, 3.0, h) + 1e-6
     cost = dp_full_line(segments, h, L)
-    expected = tour_length(-3.0, 3.0, h)
-    assert abs(cost - expected) < 1e-6
+    assert math.isclose(cost, L, abs_tol=1e-6)
 
-@pytest.mark.parametrize("segs, reflect", [
-    # right-only reduces to one-sided on the same coords
-    ([(2.0, 4.0), (6.0, 7.0)], False),
-    # left-only reduces to one-sided on the reflected coords
-    ([(-5.0, -3.0), (-2.0, -1.0)], True),
-])
-def test_dp_full_line_one_side_shortcuts(segs, reflect):
-    h, L = 0.0, 1e6
-    cost = dp_full_line(segs, h, L)
-    # Compare against the correct one-sided oracle
-    if reflect:
-        ref = [(-b, -a) for (a, b) in segs]
-        dp_ref, _ = dp_one_side(ref, h, L)
-    else:
-        dp_ref, _ = dp_one_side(segs, h, L)
-    assert abs(cost - dp_ref[-1]) < 1e-6
+
+# ---------------------------------------------------------------------------
+#  Random symmetric instances: cost ≤ one-long-tour bound
+# ---------------------------------------------------------------------------
+def test_random_symmetric_bound():
+    random.seed(2025)
+    for _ in range(15):
+        segs = []
+        for x in range(1, 6):
+            w = random.uniform(0.3, 1.2)
+            segs.append((-x - w, -x))
+            segs.append((x, x + w))
+        h = 1.0
+        L = max(tour_length(a, b, h) for a, b in segs) * 3
+        full_cost = dp_full_line(segs, h, L)
+
+        a_min = min(a for a, _ in segs)
+        b_max = max(b for _, b in segs)
+        assert full_cost <= tour_length(a_min, b_max, h) + 1e-6
