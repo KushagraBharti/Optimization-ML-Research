@@ -8,10 +8,9 @@ import math
 import random
 import pytest
 
-from coverage_planning.dp_both import dp_full_line
-from coverage_planning.dp_1side import dp_one_side
-from coverage_planning.utils import tour_length
-
+from coverage_planning.algs.heuristics.dp_one_side_heur import dp_one_side
+from coverage_planning.algs.heuristics.dp_full_line_heur import dp_full_line
+from coverage_planning.algs.geometry import tour_length, EPS
 
 def _reflect(segs):
     """Reflect left-hand segments to the right half-plane."""

@@ -1,12 +1,12 @@
 # coverage_planning/gsp.py
 """
-Greedy with Projection (GSP) — exact MinLength for a single segment.
+Greedy with Projection (GSP) — exact MinLength for a single segment. (algorithm 2)
 """
 from __future__ import annotations
 import math
 from typing import List, Tuple
 
-from .utils import tour_length, find_maximal_p, EPS
+from ..geometry import tour_length, find_maximal_p, EPS
 
 __all__ = ["greedy_min_length_one_segment"]
 
@@ -15,9 +15,8 @@ def _max_left(q: float, h: float, L: float) -> float:
     return find_maximal_p(q, h, L)
 
 
-def greedy_min_length_one_segment(
-    seg: Tuple[float, float], h: float, L: float
-) -> Tuple[int, List[Tuple[float, float]]]:
+def greedy_min_length_one_segment(seg: Tuple[float, float], h: float, L: float) -> Tuple[int, List[Tuple[float, float]]]:
+    
     a, b = sorted(seg)
     left, right = a, b
     tours: List[Tuple[float, float]] = []

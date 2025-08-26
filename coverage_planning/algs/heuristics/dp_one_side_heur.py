@@ -1,26 +1,13 @@
 # coverage_planning/dp_1side.py
 """
-One-sided exact MinLength DP (DPOS) — *paper-faithful*.
-
-API (frozen):
-    prefix_costs, suffix_costs, C = dp_one_side(segments, h, L)
-
-    • `segments`     – list[(a,b)] with 0 ≤ a < b  (all to the right of O′)
-    • `h`            – altitude of the drones
-    • `L`            – battery limit (feasible)
-
-    Returns three **aligned** lists of equal length |C|:
-
-        prefix_costs[k]  = Σ*(C[k])   – optimal cost to cover [a1 , C[k]]
-        suffix_costs[k]  = Σ̃(C[k])    – optimal cost to cover [C[k] , C[-1]]
-        C[k]             = k-th candidate right-endpoint (strictly increasing)
+One-sided exact MinLength DP (DPOS) (Algorithm 3)
 """
 
 from __future__ import annotations
 import math
 from typing import List, Tuple
 
-from .utils import tour_length, find_maximal_p, sort_segments, log, EPS, VERBOSE
+from ..geometry import tour_length, find_maximal_p, sort_segments, log, EPS, VERBOSE
 
 __all__ = ["generate_candidates_one_side", "dp_one_side"]
 

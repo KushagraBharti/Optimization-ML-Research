@@ -14,8 +14,8 @@ import statistics
 import time
 from typing import List, Tuple
 
-from coverage_planning.greedy import greedy_min_tours
-from coverage_planning.utils import tour_length, EPS
+from coverage_planning.algs.heuristics.gs_mintours import greedy_min_tours
+from coverage_planning.algs.geometry import tour_length, EPS
 
 
 # ---------------------------------------------------------------------------

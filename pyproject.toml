@@ -12,7 +12,11 @@ authors = [{ name = "Kushagra Bharti" }]
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = ["pytest", "ruff", "black", "mypy>=1.8"]
+
+[tool.ruff]
+line-length = 100
+select = ["E","F","I","UP"]
 
 # Tell setuptools how to find your package
 [tool.setuptools.packages.find]

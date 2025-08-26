@@ -1,13 +1,13 @@
 # coverage_planning/greedy.py
 """
-Greedy Strategy (GS) — optimal for MinTours on *pair-wise disjoint* segments.
+Greedy Strategy (GS) — optimal for MinTours on disjoint segments. (algorithm 1)
 """
 from __future__ import annotations
 import math
 from collections import deque
 from typing import List, Tuple
 
-from .utils import tour_length, find_maximal_p, sort_segments, EPS
+from ..geometry import tour_length, find_maximal_p, sort_segments, EPS
 
 __all__ = ["greedy_min_tours"]
 
@@ -44,9 +44,8 @@ def _trim_left(segs: deque, left: float, right: float):
             break
 
 
-def greedy_min_tours(
-    segments: List[Tuple[float, float]], h: float, L: float
-) -> Tuple[int, List[Tuple[float, float]]]:
+def greedy_min_tours(segments: List[Tuple[float, float]], h: float, L: float) -> Tuple[int, List[Tuple[float, float]]]:
+    
     if not segments:
         return 0, []
 

@@ -5,11 +5,11 @@ from __future__ import annotations
 import time
 from typing import List, Tuple
 
-import coverage_planning.utils as utils
-from coverage_planning.greedy import greedy_min_tours
-from coverage_planning.gsp import greedy_min_length_one_segment
-from coverage_planning.dp_1side import dp_one_side
-from coverage_planning.dp_both import dp_full_line
+import coverage_planning.algs.geometry as utils
+from coverage_planning.algs.heuristics.gs_mintours import greedy_min_tours
+from coverage_planning.algs.heuristics.gsp_single import greedy_min_length_one_segment
+from coverage_planning.algs.heuristics.dp_one_side_heur import dp_one_side
+from coverage_planning.algs.heuristics.dp_full_line_heur import dp_full_line
 
 utils.VERBOSE = True
 SEP = "=" * 80

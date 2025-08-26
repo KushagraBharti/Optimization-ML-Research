@@ -7,17 +7,15 @@ from __future__ import annotations
 import math
 from typing import List, Tuple
 
-from .utils import tour_length, log, EPS
-from .dp_1side import dp_one_side
+from ..geometry import tour_length, log, EPS
+from .dp_one_side_heur import dp_one_side
 
 __all__ = ["dp_full_line"]
 
 
 # --------------------------------------------------------------------------- #
-def _split_reflect(
-    segments: List[Tuple[float, float]]
-) -> Tuple[List[Tuple[float, float]], List[Tuple[float, float]]]:
-    """Return (left_reflected, right) with all coords ≥ 0."""
+def _split_reflect(segments: List[Tuple[float, float]]) -> Tuple[List[Tuple[float, float]], List[Tuple[float, float]]]:
+    
     left, right = [], []
     for a, b in segments:
         if b <= 0:
@@ -36,6 +34,7 @@ def _split_reflect(
 
 # --------------------------------------------------------------------------- #
 def dp_full_line(segments: List[Tuple[float, float]], h: float, L: float) -> float:
+    
     left_ref, right = _split_reflect(segments)
     log("Left (reflected):", left_ref)
     log("Right:", right, "\n")

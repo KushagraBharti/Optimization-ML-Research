@@ -1,16 +1,25 @@
-# coverage_planning/__init__.py
+# Heuristic APIs – default exports
+from .algs.heuristics import (
+    greedy_min_tours,
+    greedy_min_length_one_segment,
+    dp_one_side,
+    dp_full_line,
+)
 
-# robust
+# Geometry & constants
+from .algs.geometry import tour_length, find_maximal_p, VERBOSE, EPS
 
-from .utils import tour_length, find_maximal_p
-from .greedy import greedy_min_tours
-from .gsp import greedy_min_length_one_segment
-from .dp_1side import dp_one_side
-from .dp_both import dp_full_line
+# Reference solvers – available under .reference.*
+from .algs import reference as reference
 
 __all__ = [
-  "tour_length", "find_maximal_p",
-  "greedy_min_tours",
-  "greedy_min_length_one_segment",
-  "dp_one_side", "dp_full_line",
+    # geometry
+    "tour_length", "find_maximal_p", "VERBOSE", "EPS",
+    # heuristics (default)
+    "greedy_min_tours",
+    "greedy_min_length_one_segment",
+    "dp_one_side",
+    "dp_full_line",
+    # namespaced access to reference solvers
+    "reference",
 ]

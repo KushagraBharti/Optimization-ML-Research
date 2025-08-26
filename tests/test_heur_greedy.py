@@ -4,8 +4,7 @@ Tests for Greedy MinTours under *paper assumptions*:
 segments must be pair-wise disjoint with a positive gap.
 """
 import pytest
-from coverage_planning.greedy import greedy_min_tours
-
+from coverage_planning.algs.heuristics.gs_mintours import greedy_min_tours
 
 def test_greedy_unsorted():
     segs = [(5, 6), (1, 2), (3, 4)]
