@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "coverage_planning"
+version = "0.1.0"
+description = "Exact and greedy algorithms for 1D drone-coverage planning"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Kushagra Bharti" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+# Tell setuptools how to find your package
+[tool.setuptools.packages.find]
+include = ["coverage_planning*"]

@@ -35,8 +35,17 @@ This package provides four core algorithms to plan drone tours on a 1D line unde
 
 ## Installation
 
+This project is built using Anaconda (highly recommend to follow that)
+
 ```bash
-pip install -e .
+conda create -n mlresearch python -y
+conda activate mlresearch
+
+# sanity checks
+where.exe python    # should point into ...\anaconda3\envs\mlresearch
+python --version
+
+pip install -e .[dev]
 ```
 
 ## Usage
@@ -47,15 +56,15 @@ Quick demo:
 python examples/run_all.py
 ```
 
-Unit tests:
-
-```bash
-pytest
-```
-
 Benchmarks:
 
 ```bash
 python benchmark/benchmark_greedy.py
 python benchmark/benchmark_dp.py
+```
+
+Unit tests:
+
+```bash
+pytest
 ```
