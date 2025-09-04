@@ -3,9 +3,9 @@
 Speed test for Greedy MinTours on large *pair-wise disjoint* instances.
 
 Three distributions:
-    • Uniform      – random in [0,span], sorted & gap-corrected
-    • Clustered    – Gaussian clusters but gaps enforced
-    • Worst-case   – many tiny segments, minimum positive gap
+    • Uniform       random in [0,span], sorted & gap-corrected
+    • Clustered     Gaussian clusters but gaps enforced
+    • Worst-case    many tiny segments, minimum positive gap
 """
 
 from __future__ import annotations
@@ -18,9 +18,7 @@ from coverage_planning.algs.heuristics.gs_mintours import greedy_min_tours
 from coverage_planning.algs.geometry import tour_length, EPS
 
 
-# ---------------------------------------------------------------------------
 #  Utility: enforce positive gaps
-# ---------------------------------------------------------------------------
 def _disjointify(segs: List[Tuple[float, float]], gap: float = 1e-3) -> List[Tuple[float, float]]:
     """
     Given *unsorted* segments, sort them and push each one rightwards
@@ -38,9 +36,7 @@ def _disjointify(segs: List[Tuple[float, float]], gap: float = 1e-3) -> List[Tup
     return out
 
 
-# ---------------------------------------------------------------------------
 #  Instance generators
-# ---------------------------------------------------------------------------
 def _random_uniform(n: int, span: float = 100.0) -> List[Tuple[float, float]]:
     xs = sorted(random.uniform(0.0, span) for _ in range(2 * n))
     segs = [(xs[2 * i], xs[2 * i + 1]) for i in range(n)]
@@ -66,9 +62,7 @@ def _worst_case(n: int) -> List[Tuple[float, float]]:
     return [(i * 0.01, i * 0.01 + 0.009) for i in range(n)]
 
 
-# ---------------------------------------------------------------------------
 #  Benchmark driver
-# ---------------------------------------------------------------------------
 def _bench(
     gen_fn,
     label: str,

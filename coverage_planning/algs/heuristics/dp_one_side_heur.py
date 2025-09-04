@@ -12,9 +12,8 @@ from ..geometry import tour_length, find_maximal_p, sort_segments, log, EPS, VER
 __all__ = ["generate_candidates_one_side", "dp_one_side"]
 
 
-# --------------------------------------------------------------------------- #
-#  Candidate set (Lemma 3)                                                    #
-# --------------------------------------------------------------------------- #
+
+# Candidate set         
 def generate_candidates_one_side(
     segments: List[Tuple[float, float]], h: float, L: float
 ) -> List[float]:
@@ -54,9 +53,8 @@ def generate_candidates_one_side(
     return C
 
 
-# --------------------------------------------------------------------------- #
-#  DP core                                                                    #
-# --------------------------------------------------------------------------- #
+
+# DP core
 def _len(a: float, b: float, h: float) -> float:
     return tour_length(a, b, h)
 
@@ -80,7 +78,7 @@ def dp_one_side(
     a1 = segs[0][0]
     seg_ptr = 0
 
-    # ---------------------- prefix DP ------------------------------------
+    # prefix DP 
     for k, c in enumerate(C):
         best = math.inf
 
@@ -114,7 +112,7 @@ def dp_one_side(
         if VERBOSE:
             log(f"Σ*({c:.3f}) = {best:.3f}")
 
-    # ---------------------- suffix DP (constant-time recurrence) ---------
+    # suffix DP (constant-time recurrence)
     suffix = [0.0] * m
     suffix[-1] = 0.0
     for k in range(m - 2, -1, -1):

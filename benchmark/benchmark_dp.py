@@ -2,8 +2,8 @@
 """
 Timing harness for the exact DP algorithms.
 
-• bench_one_side  – one-sided DP (DPOS) on random right-side instances
-• bench_full_line – full-line DP on alternating left/right segments
+• bench_one_side   one-sided DP (DPOS) on random right-side instances
+• bench_full_line  full-line DP on alternating left/right segments
 """
 
 from __future__ import annotations
@@ -17,9 +17,8 @@ from coverage_planning.algs.heuristics.dp_full_line_heur import dp_full_line
 from coverage_planning.algs.geometry import tour_length
 
 
-# ---------------------------------------------------------------------------
+
 #  Helpers
-# ---------------------------------------------------------------------------
 def _random_segments_right(n: int, span: float = 100.0) -> List[Tuple[float, float]]:
     xs = sorted(random.uniform(0.0, span) for _ in range(2 * n))
     return [(xs[2 * i], xs[2 * i + 1]) for i in range(n)]
@@ -40,9 +39,7 @@ def _alternating_left_right(n: int, span: float = 100.0) -> List[Tuple[float, fl
     return out
 
 
-# ---------------------------------------------------------------------------
 #  Benchmarks
-# ---------------------------------------------------------------------------
 def bench_one_side(avg_runs: int = 5) -> None:
     print("=== One-Sided DP Benchmarks ===")
     for n in [100, 200, 400]:

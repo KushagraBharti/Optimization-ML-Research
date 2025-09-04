@@ -13,7 +13,7 @@ __all__ = ["greedy_min_tours"]
 
 
 def _validate_disjoint(segments: List[Tuple[float, float]]):
-    """Raise if segments overlap or merely touch (paper pre-condition)."""
+    # Raise if segments overlap or merely touch (paper pre-condition).
     segs = sort_segments(segments)
     for i in range(1, len(segs)):
         if segs[i - 1][1] >= segs[i][0] - EPS:

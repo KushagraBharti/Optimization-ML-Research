@@ -12,8 +12,6 @@ from .dp_one_side_heur import dp_one_side
 
 __all__ = ["dp_full_line"]
 
-
-# --------------------------------------------------------------------------- #
 def _split_reflect(segments: List[Tuple[float, float]]) -> Tuple[List[Tuple[float, float]], List[Tuple[float, float]]]:
     
     left, right = [], []
@@ -31,8 +29,6 @@ def _split_reflect(segments: List[Tuple[float, float]]) -> Tuple[List[Tuple[floa
     right.sort(key=lambda s: s[0])
     return left, right
 
-
-# --------------------------------------------------------------------------- #
 def dp_full_line(segments: List[Tuple[float, float]], h: float, L: float) -> float:
     
     left_ref, right = _split_reflect(segments)

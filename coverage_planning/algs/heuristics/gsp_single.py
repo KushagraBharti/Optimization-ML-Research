@@ -38,7 +38,7 @@ def greedy_min_length_one_segment(seg: Tuple[float, float], h: float, L: float) 
         if right >= -left:          # sweep from right
             p = _max_left(right, h, L)
             if right - p < EPS:
-                # stagnation ⇒ residual now straddles O′ and fits in two tours
+                # stagnation -> residual now straddles O' and fits in two tours
                 span = max(-left, right)
                 tours.extend([(-span, 0.0), (0.0, span)])
                 break
