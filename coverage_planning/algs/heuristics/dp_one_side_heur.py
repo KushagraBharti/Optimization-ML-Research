@@ -11,8 +11,6 @@ from ..geometry import tour_length, find_maximal_p, sort_segments, log, EPS, VER
 
 __all__ = ["generate_candidates_one_side", "dp_one_side"]
 
-
-
 # Candidate set         
 def generate_candidates_one_side(
     segments: List[Tuple[float, float]], h: float, L: float

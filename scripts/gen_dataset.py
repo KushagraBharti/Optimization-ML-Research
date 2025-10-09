@@ -29,6 +29,7 @@ def main():
     def label_one() -> LabeledExample:
         segs, h, L = sample_instance(cfg)
         inst = Instance(segments=segs, h=h, L=L, seed=None, meta={})
+        
         if args.objective == "MinTours":
             return label_min_tours(inst, provider)
         elif args.objective == "MinLength_OneSide":
