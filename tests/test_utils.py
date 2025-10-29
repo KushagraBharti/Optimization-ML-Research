@@ -7,7 +7,8 @@ from functools import lru_cache
 from typing import Iterable, List, Sequence, Tuple
 
 try:
-    from coverage_planning.algs.geometry import EPS, find_maximal_p, tour_length
+    from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
+    from coverage_planning.algs.geometry import find_maximal_p, tour_length
 except ImportError:  # pragma: no cover - layout fallback
     import sys
     from pathlib import Path
@@ -15,7 +16,8 @@ except ImportError:  # pragma: no cover - layout fallback
     REPO_ROOT = Path(__file__).resolve().parents[1]
     if str(REPO_ROOT) not in sys.path:
         sys.path.append(str(REPO_ROOT))
-    from coverage_planning.algs.geometry import EPS, find_maximal_p, tour_length
+    from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
+    from coverage_planning.algs.geometry import find_maximal_p, tour_length
 
 
 __all__ = [
@@ -37,7 +39,7 @@ __all__ = [
 ]
 
 
-TOL = 1e-6
+TOL = TOL_NUM
 
 
 # ---------------------------------------------------------------------------
@@ -96,7 +98,7 @@ def gen_one_side_segments(
     min_len: float,
     min_gap: float,
 ) -> List[Tuple[float, float]]:
-    if x_lo < -EPS:
+    if x_lo < -EPS_GEOM:
         raise ValueError("x_lo must be non-negative for one-sided generation")
     segs = gen_disjoint_segments(rnd, k, x_lo, x_hi, min_len, min_gap)
     return segs
@@ -236,7 +238,7 @@ def oracle_min_tours_gs(
     candidates: List[Tuple[float, float]] = []
     for p in points:
         for q in points:
-            if q < p - EPS:
+            if q < p - EPS_GEOM:
                 continue
             length = tour_length(p, q, h)
             if length <= L + 1e-9:
@@ -285,7 +287,7 @@ def oracle_min_length_one_side(
 ) -> float:
     if len(segments) > 3:
         raise ValueError("oracle_min_length_one_side supports at most three segments")
-    if any(a < -EPS for a, _ in segments):
+    if any(a < -EPS_GEOM for a, _ in segments):
         raise ValueError("Segments must satisfy x >= 0")
     segments_sorted = sorted(segments, key=lambda s: s[0])
     check_disjoint(segments_sorted)

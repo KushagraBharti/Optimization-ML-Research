@@ -8,8 +8,9 @@ import time
 from typing import Iterable, List, Sequence, Tuple
 
 try:
-    from coverage_planning.algs.geometry import EPS, tour_length
-    from coverage_planning.algs.reference import greedy_min_length_one_segment_ref
+    from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
+    from coverage_planning.algs.geometry import tour_length
+    from coverage_planning.algs.reference import gsp as greedy_min_length_one_segment_ref
 except ImportError:  # pragma: no cover - layout fallback
     import sys
     from pathlib import Path
@@ -17,11 +18,12 @@ except ImportError:  # pragma: no cover - layout fallback
     REPO_ROOT = Path(__file__).resolve().parents[1]
     if str(REPO_ROOT) not in sys.path:
         sys.path.append(str(REPO_ROOT))
-    from coverage_planning.algs.geometry import EPS, tour_length
-    from coverage_planning.algs.reference import greedy_min_length_one_segment_ref
+    from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
+    from coverage_planning.algs.geometry import tour_length
+    from coverage_planning.algs.reference import gsp as greedy_min_length_one_segment_ref
 
 
-TOL = 1e-6
+TOL = TOL_NUM
 
 
 def parse_float_or_tuple(value: str) -> float | Tuple[float, ...]:
@@ -56,7 +58,7 @@ def check_cover_exact(
     segments: Sequence[Tuple[float, float]],
     tours: Sequence[Tuple[float, float]],
     *,
-    tol: float = 1e-7,
+    tol: float = TOL,
 ) -> None:
     for a, b in segments:
         pieces = []
@@ -131,7 +133,7 @@ def generate_two_tour_instance(
         L = max(len_left, len_right) * alpha
         farthest = max(abs(left), abs(right))
         L = max(L, 2.0 * math.hypot(farthest, h) * 1.02)
-        if direct > L + 0.5 and len_left <= L + EPS and len_right <= L + EPS:
+        if direct > L + 0.5 and len_left <= L + EPS_GEOM and len_right <= L + EPS_GEOM:
             return (left, right), L
     raise RuntimeError("Failed to generate two-tour instance")
 
@@ -172,7 +174,7 @@ def run_benchmark(args: argparse.Namespace) -> None:
             continue
 
         farthest = max(abs(seg[0]), abs(seg[1]))
-        if 2.0 * math.hypot(farthest, args.h) > L + EPS:
+        if 2.0 * math.hypot(farthest, args.h) > L + EPS_GEOM:
             L = 2.0 * math.hypot(farthest, args.h) * 1.05
 
         try:

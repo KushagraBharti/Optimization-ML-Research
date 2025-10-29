@@ -16,7 +16,7 @@ except ImportError:  # pragma: no cover
     st = None  # type: ignore[assignment]
 
 try:
-    from coverage_planning.algs.reference import greedy_min_length_one_segment_ref
+    from coverage_planning.algs.reference import gsp
 except ImportError:  # pragma: no cover - layout fallback
     import sys
     from pathlib import Path
@@ -24,9 +24,10 @@ except ImportError:  # pragma: no cover - layout fallback
     REPO_ROOT = Path(__file__).resolve().parents[1]
     if str(REPO_ROOT) not in sys.path:
         sys.path.append(str(REPO_ROOT))
-    from coverage_planning.algs.reference import greedy_min_length_one_segment_ref
+    from coverage_planning.algs.reference import gsp
 
-from coverage_planning.algs.geometry import EPS, tour_length
+from coverage_planning.common.constants import EPS_GEOM
+from coverage_planning.algs.geometry import tour_length
 from tests.test_utils import (
     check_cover_exact,
     check_tours_feasible,
@@ -45,21 +46,21 @@ def test_gsp_one_tour_finish(tol: float) -> None:
     h = 2.5
     direct = tour_length(seg[0], seg[1], h)
     L = direct + 2.0
-    count, tours = greedy_min_length_one_segment_ref(seg, h=h, L=L)
+    count, tours = gsp(seg, h=h, L=L)
     assert count == 1
     assert len(tours) == 1
     check_cover_exact([seg], tours)
     check_tours_feasible(h, L, tours, tol=tol)
     p, q = tours[0]
-    assert math.isclose(p, seg[0], abs_tol=EPS)
-    assert math.isclose(q, seg[1], abs_tol=EPS)
+    assert math.isclose(p, seg[0], abs_tol=EPS_GEOM)
+    assert math.isclose(q, seg[1], abs_tol=EPS_GEOM)
 
 
 def test_gsp_two_tours_at_zero(tol: float) -> None:
     seg = (-7.0, 5.0)
     h = 2.0
     L = 21.5
-    count, tours = greedy_min_length_one_segment_ref(seg, h=h, L=L)
+    count, tours = gsp(seg, h=h, L=L)
     assert count == 2
     check_cover_exact([seg], tours)
     check_tours_feasible(h, L, tours, tol=tol)
@@ -72,7 +73,7 @@ def test_gsp_multiple_sweeps_one_side(tol: float) -> None:
     seg = (0.5560129491841641, 6.7559704318079685)
     h = 2.900186347909552
     L = 14.761716560455461
-    count, tours = greedy_min_length_one_segment_ref(seg, h=h, L=L)
+    count, tours = gsp(seg, h=h, L=L)
     assert count == 3
     check_cover_exact([seg], tours)
     check_tours_feasible(h, L, tours, tol=tol)
@@ -87,7 +88,7 @@ def test_gsp_knife_edge_behavior(tol: float) -> None:
     farthest = max(abs(seg[0]), abs(seg[1]))
     L = 2.0 * math.hypot(farthest, h) + 1e-7
     try:
-        count, tours = greedy_min_length_one_segment_ref(seg, h=h, L=L)
+        count, tours = gsp(seg, h=h, L=L)
         check_cover_exact([seg], tours)
         check_tours_feasible(h, L, tours, tol=tol)
     except ValueError as exc:
@@ -100,14 +101,14 @@ def test_gsp_invalid_segment() -> None:
     h = 2.0
     L = 10.0
     with pytest.raises(ValueError):
-        greedy_min_length_one_segment_ref(seg, h=h, L=L)
+        gsp(seg, h=h, L=L)
 
 
 def test_gsp_extremely_asymmetric_segment(tol: float) -> None:
     seg = (-25.0, -0.2)
     h = 2.5
     L = tour_length(seg[0], seg[1], h) + 5.0
-    count, tours = greedy_min_length_one_segment_ref(seg, h=h, L=L)
+    count, tours = gsp(seg, h=h, L=L)
     assert count == 1
     check_cover_exact([seg], tours)
     check_tours_feasible(h, L, tours, tol=tol)
@@ -149,7 +150,7 @@ if HAVE_HYPOTHESIS:
     @given(gsp_instances())
     def test_gsp_property_expected_tour_structure(data, tol: float) -> None:
         seg, h, L, mode = data
-        count, tours = greedy_min_length_one_segment_ref(seg, h=h, L=L)
+        count, tours = gsp(seg, h=h, L=L)
         check_cover_exact([seg], tours)
         check_tours_feasible(h, L, tours, tol=tol)
         total_length = tour_len_sum(h, tours)
@@ -160,7 +161,7 @@ if HAVE_HYPOTHESIS:
         else:
             assert count == 2
             hits_zero = any(
-                min(p, q) <= 0.0 + EPS <= max(p, q) for p, q in tours
+                min(p, q) <= 0.0 + EPS_GEOM <= max(p, q) for p, q in tours
             )
             assert hits_zero
 
@@ -179,12 +180,12 @@ def test_gsp_scaling(scale: float, tol: float) -> None:
     seg = (-6.0, 4.0)
     h = 3.0
     L = 28.0
-    base_count, base_tours = greedy_min_length_one_segment_ref(seg, h=h, L=L)
+    base_count, base_tours = gsp(seg, h=h, L=L)
     base_cost = tour_len_sum(h, base_tours)
     scaled_seg = [(p * scale, q * scale) for p, q in [seg]][0]
     scaled_h = h * scale
     scaled_L = L * scale
-    scaled_count, scaled_tours = greedy_min_length_one_segment_ref(
+    scaled_count, scaled_tours = gsp(
         scaled_seg, h=scaled_h, L=scaled_L
     )
     scaled_cost = tour_len_sum(scaled_h, scaled_tours)
@@ -198,10 +199,10 @@ def test_gsp_reflection(tol: float) -> None:
     seg = (-8.5, 6.0)
     h = 2.5
     L = 26.0
-    count, tours = greedy_min_length_one_segment_ref(seg, h=h, L=L)
+    count, tours = gsp(seg, h=h, L=L)
     cost = tour_len_sum(h, tours)
     reflected_seg = reflect_segments([seg])[0]
-    ref_count, ref_tours = greedy_min_length_one_segment_ref(reflected_seg, h=h, L=L)
+    ref_count, ref_tours = gsp(reflected_seg, h=h, L=L)
     ref_cost = tour_len_sum(h, ref_tours)
     assert ref_count == count
     assert math.isclose(cost, ref_cost, abs_tol=1e-5)

@@ -8,8 +8,9 @@ import time
 from typing import List, Sequence, Tuple
 
 try:
+    from coverage_planning.common.constants import TOL_NUM
     from coverage_planning.algs.geometry import tour_length
-    from coverage_planning.algs.reference import dp_one_side_ref
+    from coverage_planning.algs.reference import dpos as dpos
 except ImportError:  # pragma: no cover - layout fallback
     import sys
     from pathlib import Path
@@ -17,11 +18,12 @@ except ImportError:  # pragma: no cover - layout fallback
     REPO_ROOT = Path(__file__).resolve().parents[1]
     if str(REPO_ROOT) not in sys.path:
         sys.path.append(str(REPO_ROOT))
+    from coverage_planning.common.constants import TOL_NUM
     from coverage_planning.algs.geometry import tour_length
-    from coverage_planning.algs.reference import dp_one_side_ref
+    from coverage_planning.algs.reference import dpos as dpos
 
 
-TOL = 1e-6
+TOL = TOL_NUM
 
 
 def parse_float_or_tuple(value: str) -> float | Tuple[float, ...]:
@@ -122,7 +124,7 @@ def run_benchmark(args: argparse.Namespace) -> None:
 
         try:
             start = time.perf_counter()
-            Sigma, candidates = dp_one_side_ref(segments, h=args.h, L=L)
+            Sigma, candidates = dpos(segments, h=args.h, L=L)
             elapsed = time.perf_counter() - start
             if not candidates:
                 raise RuntimeError("Empty candidate set")

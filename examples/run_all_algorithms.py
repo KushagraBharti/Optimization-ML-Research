@@ -5,12 +5,13 @@ from dataclasses import dataclass
 from typing import Iterable, List, Sequence, Tuple
 
 try:
-    from coverage_planning.algs.geometry import EPS, tour_length
+    from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
+    from coverage_planning.algs.geometry import tour_length
     from coverage_planning.algs.reference import (
-        dp_full_line_ref,
-        dp_one_side_ref,
-        greedy_min_length_one_segment_ref,
-        greedy_min_tours_ref,
+        dp_full,
+        dpos,
+        gsp,
+        gs,
     )
 except ImportError:  # pragma: no cover - layout fallback
     import sys
@@ -19,16 +20,17 @@ except ImportError:  # pragma: no cover - layout fallback
     REPO_ROOT = Path(__file__).resolve().parents[1]
     if str(REPO_ROOT) not in sys.path:
         sys.path.append(str(REPO_ROOT))
-    from coverage_planning.algs.geometry import EPS, tour_length
+    from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
+    from coverage_planning.algs.geometry import tour_length
     from coverage_planning.algs.reference import (
-        dp_full_line_ref,
-        dp_one_side_ref,
-        greedy_min_length_one_segment_ref,
-        greedy_min_tours_ref,
+        dp_full,
+        dpos,
+        gsp,
+        gs,
     )
 
 
-TOL = 1e-6
+TOL = TOL_NUM
 
 
 def tour_length_sum(h: float, tours: Iterable[Tuple[float, float]]) -> float:
@@ -91,7 +93,7 @@ def run_gs_example() -> ExampleResult:
     h = 3.0
     L = 28.0
     try:
-        count, tours = greedy_min_tours_ref(segments, h=h, L=L)
+        count, tours = gs(segments, h=h, L=L)
     except ValueError as exc:
         return ExampleResult(
             "GS / MinTours",
@@ -120,7 +122,7 @@ def run_gsp_example() -> ExampleResult:
     h = 2.5
     L = 21.5
     try:
-        count, tours = greedy_min_length_one_segment_ref(seg, h=h, L=L)
+        count, tours = gsp(seg, h=h, L=L)
     except ValueError as exc:
         return ExampleResult(
             "GSP / Single Segment",
@@ -149,7 +151,7 @@ def run_dpos_example() -> ExampleResult:
     h = 2.0
     L = 17.5
     try:
-        Sigma, candidates = dp_one_side_ref(segments, h=h, L=L)
+        Sigma, candidates = dpos(segments, h=h, L=L)
     except ValueError as exc:
         return ExampleResult(
             "DPOS / One-Sided",
@@ -180,7 +182,7 @@ def run_full_line_example() -> ExampleResult:
     h = 2.5
     L = 18.626939647203475
     try:
-        cost_full, tours = dp_full_line_ref(segments, h=h, L=L)
+        cost_full, tours = dp_full(segments, h=h, L=L)
     except ValueError as exc:
         return ExampleResult(
             "Full-Line DP",
@@ -196,10 +198,10 @@ def run_full_line_example() -> ExampleResult:
 
     baseline = 0.0
     if left:
-        Sigma_left, _ = dp_one_side_ref([(-b, -a) for a, b in reversed(left)], h=h, L=L)
+        Sigma_left, _ = dpos([(-b, -a) for a, b in reversed(left)], h=h, L=L)
         baseline += Sigma_left[-1]
     if right:
-        Sigma_right, _ = dp_one_side_ref(right, h=h, L=L)
+        Sigma_right, _ = dpos(right, h=h, L=L)
         baseline += Sigma_right[-1]
 
     if baseline <= 0.0:
@@ -216,7 +218,7 @@ def run_full_line_example() -> ExampleResult:
 
     # Monotonicity sanity check
     L_up = 1.2 * L
-    cost_looser, _ = dp_full_line_ref(segments, h=h, L=L_up)
+    cost_looser, _ = dp_full(segments, h=h, L=L_up)
     if cost_looser > cost_full + TOL:
         raise AssertionError(
             f"Monotonicity violated: cost({L_up})={cost_looser} > cost({L})={cost_full}"

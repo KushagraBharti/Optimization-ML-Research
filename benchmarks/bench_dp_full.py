@@ -8,8 +8,9 @@ import time
 from typing import List, Sequence, Tuple
 
 try:
-    from coverage_planning.algs.geometry import EPS, tour_length
-    from coverage_planning.algs.reference import dp_full_line_ref, dp_one_side_ref
+    from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
+    from coverage_planning.algs.geometry import tour_length
+    from coverage_planning.algs.reference import dp_full, dpos
 except ImportError:  # pragma: no cover - layout fallback
     import sys
     from pathlib import Path
@@ -17,11 +18,12 @@ except ImportError:  # pragma: no cover - layout fallback
     REPO_ROOT = Path(__file__).resolve().parents[1]
     if str(REPO_ROOT) not in sys.path:
         sys.path.append(str(REPO_ROOT))
-    from coverage_planning.algs.geometry import EPS, tour_length
-    from coverage_planning.algs.reference import dp_full_line_ref, dp_one_side_ref
+    from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
+    from coverage_planning.algs.geometry import tour_length
+    from coverage_planning.algs.reference import dp_full, dpos
 
 
-TOL = 1e-6
+TOL = TOL_NUM
 
 
 def parse_float_or_tuple(value: str) -> float | Tuple[float, ...]:
@@ -141,18 +143,18 @@ def baseline_costs(
     h: float,
     L: float,
 ) -> Tuple[float, float, float]:
-    left = [seg for seg in segments if seg[1] <= 0.0 + EPS]
-    right = [seg for seg in segments if seg[0] >= 0.0 - EPS]
+    left = [seg for seg in segments if seg[1] <= 0.0 + EPS_GEOM]
+    right = [seg for seg in segments if seg[0] >= 0.0 - EPS_GEOM]
 
     cost_left = 0.0
     cost_right = 0.0
 
     if left:
         left_ref = reflect_left_segments(left)
-        Sigma_L, _ = dp_one_side_ref(left_ref, h=h, L=L)
+        Sigma_L, _ = dpos(left_ref, h=h, L=L)
         cost_left = Sigma_L[-1]
     if right:
-        Sigma_R, _ = dp_one_side_ref(right, h=h, L=L)
+        Sigma_R, _ = dpos(right, h=h, L=L)
         cost_right = Sigma_R[-1]
 
     return cost_left + cost_right, cost_left, cost_right
@@ -194,7 +196,7 @@ def run_benchmark(args: argparse.Namespace) -> None:
         try:
             baseline, _, _ = baseline_costs(segments, h=args.h, L=L)
             start = time.perf_counter()
-            cost_full, _ = dp_full_line_ref(segments, h=args.h, L=L)
+            cost_full, _ = dp_full(segments, h=args.h, L=L)
             elapsed = time.perf_counter() - start
             if baseline <= 0.0:
                 raise RuntimeError("Baseline cost non-positive")

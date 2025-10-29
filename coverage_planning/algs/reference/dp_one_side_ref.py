@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import bisect
 import math
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from ..geometry import EPS, find_maximal_p, tour_length
@@ -174,6 +174,7 @@ def dp_one_side(
     segments: List[Tuple[float, float]],
     h: float,
     L: float,
+    debug: Optional[Dict[str, Any]] = None,
 ) -> Tuple[List[float], List[float]]:
     """Run Algorithm 3 (DPOS) on the right half-line.
 
@@ -181,6 +182,9 @@ def dp_one_side(
     """
     segs = _validate_segments(segments, h, L)
     candidates = _generate_candidates_validated(segs, h, L)
+    transitions_case2 = 0
+    transitions_case3 = 0
+    transitions_total = 0
 
     lefts = [a for a, _ in segs]
     rights = [b for _, b in segs]
@@ -236,6 +240,8 @@ def dp_one_side(
                     continue
                 prev = 0.0 if j == 0 else Sigma[right_candidate_idx[j - 1]]
                 cand = prev + length
+                transitions_case2 += 1
+                transitions_total += 1
                 if cand < best:
                     best = cand
             if math.isinf(best):
@@ -244,6 +250,8 @@ def dp_one_side(
             p_idx = _find_candidate_index(candidates, p)
             if p_idx < k:
                 alt = L + Sigma[p_idx]
+                transitions_case3 += 1
+                transitions_total += 1
                 if alt < best:
                     best = alt
             # inner minima, starting strictly after the segment containing p
@@ -253,6 +261,8 @@ def dp_one_side(
                     continue
                 prev = 0.0 if j == 0 else Sigma[right_candidate_idx[j - 1]]
                 cand = prev + length
+                transitions_case3 += 1
+                transitions_total += 1
                 if cand < best:
                     best = cand
             if math.isinf(best):
@@ -263,6 +273,19 @@ def dp_one_side(
         Sigma.append(best)
         Sigma_map[c] = best
 
+    if debug is not None:
+        debug.clear()
+        debug.update(
+            {
+                "candidate_count": len(candidates),
+                "transitions_case2": transitions_case2,
+                "transitions_case3": transitions_case3,
+                "transitions_total": transitions_total,
+                "table_size": len(Sigma),
+                "candidates": list(candidates),
+            }
+        )
+
     return Sigma, candidates
 
 
@@ -271,8 +294,13 @@ def generate_candidates_one_side_ref(segments: List[Tuple[float, float]], h: flo
     return generate_candidates_one_side(segments, h, L)
 
 
-def dp_one_side_ref(segments: List[Tuple[float, float]], h: float, L: float) -> Tuple[List[float], List[float]]:
-    return dp_one_side(segments, h, L)
+def dp_one_side_ref(
+    segments: List[Tuple[float, float]],
+    h: float,
+    L: float,
+    debug: Optional[Dict[str, Any]] = None,
+) -> Tuple[List[float], List[float]]:
+    return dp_one_side(segments, h, L, debug=debug)
 
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ except ImportError:  # pragma: no cover
     st = None  # type: ignore[assignment]
 
 try:
-    from coverage_planning.algs.reference import dp_full_line_ref, dp_one_side_ref
+    from coverage_planning.algs.reference import dp_full, dpos
 except ImportError:  # pragma: no cover - layout fallback
     import sys
     from pathlib import Path
@@ -25,7 +25,7 @@ except ImportError:  # pragma: no cover - layout fallback
     REPO_ROOT = Path(__file__).resolve().parents[1]
     if str(REPO_ROOT) not in sys.path:
         sys.path.append(str(REPO_ROOT))
-    from coverage_planning.algs.reference import dp_full_line_ref, dp_one_side_ref
+    from coverage_planning.algs.reference import dp_full, dpos
 
 from coverage_planning.algs.geometry import tour_length
 from tests.test_utils import (
@@ -47,10 +47,10 @@ def _baseline_cost(
     total = 0.0
     if left:
         left_ref = [(-b, -a) for a, b in reversed(left)]
-        Sigma_L, _ = dp_one_side_ref(left_ref, h=h, L=L)
+        Sigma_L, _ = dpos(left_ref, h=h, L=L)
         total += Sigma_L[-1]
     if right:
-        Sigma_R, _ = dp_one_side_ref(right, h=h, L=L)
+        Sigma_R, _ = dpos(right, h=h, L=L)
         total += Sigma_R[-1]
     return total
 
@@ -62,8 +62,8 @@ def test_dp_full_all_on_one_side_matches_dpos(tol: float) -> None:
     segments = [(1.5, 2.5), (4.0, 5.0)]
     h = 2.0
     L = 30.0
-    cost_full, tours = dp_full_line_ref(segments, h=h, L=L)
-    Sigma, _ = dp_one_side_ref(segments, h=h, L=L)
+    cost_full, tours = dp_full(segments, h=h, L=L)
+    Sigma, _ = dpos(segments, h=h, L=L)
     assert math.isclose(cost_full, Sigma[-1], abs_tol=tol)
     assert tours == []
 
@@ -72,7 +72,7 @@ def test_dp_full_gap_around_origin_equals_baseline(tol: float) -> None:
     segments = [(-7.0, -5.5), (-3.0, -2.0), (2.5, 3.4), (5.0, 6.1)]
     h = 2.5
     L = 23.0
-    cost_full, _ = dp_full_line_ref(segments, h=h, L=L)
+    cost_full, _ = dp_full(segments, h=h, L=L)
     baseline = _baseline_cost(segments, h, L)
     assert math.isclose(cost_full, baseline, abs_tol=tol)
 
@@ -86,7 +86,7 @@ def test_dp_full_bridge_beneficial(tol: float) -> None:
     ]
     h = 2.5
     L = 18.626939647203475
-    cost_full, _ = dp_full_line_ref(segments, h=h, L=L)
+    cost_full, _ = dp_full(segments, h=h, L=L)
     baseline = _baseline_cost(segments, h, L)
     assert cost_full < baseline - 1e-4
 
@@ -99,7 +99,7 @@ def test_dp_full_straddling_segment_matches_oracle(tol: float) -> None:
     ]
     h = 1.4994411525659943
     L = 14.445651073544326
-    cost_full, _ = dp_full_line_ref(segments, h=h, L=L)
+    cost_full, _ = dp_full(segments, h=h, L=L)
     oracle = oracle_min_length_full_line(segments, h, L)
     assert math.isclose(cost_full, oracle, abs_tol=5e-5)
 
@@ -108,10 +108,10 @@ def test_dp_full_bridge_maximality_not_exposed() -> None:
     segments = [(-7.5, -6.0), (-4.0, -3.2), (2.8, 3.6), (5.5, 7.2)]
     h = 2.0
     L = 20.5
-    cost_full, tours = dp_full_line_ref(segments, h=h, L=L)
+    cost_full, tours = dp_full(segments, h=h, L=L)
     baseline = _baseline_cost(segments, h, L)
     if cost_full < baseline - 1e-4:
-        pytest.skip("dp_full_line_ref does not expose bridge endpoints for maximality check")
+        pytest.skip("dp_full does not expose bridge endpoints for maximality check")
     else:
         assert not tours
 
@@ -140,7 +140,7 @@ if HAVE_HYPOTHESIS:
     @given(dp_full_instances())
     def test_dp_full_oracle_cross_check(data, tol: float) -> None:
         segments, h, L = data
-        cost_full, _ = dp_full_line_ref(segments, h=h, L=L)
+        cost_full, _ = dp_full(segments, h=h, L=L)
         oracle = oracle_min_length_full_line(segments, h, L)
         assert math.isclose(cost_full, oracle, abs_tol=5e-5)
 
@@ -149,7 +149,7 @@ if HAVE_HYPOTHESIS:
     @given(dp_full_instances())
     def test_dp_full_bound_by_baseline(data, tol: float) -> None:
         segments, h, L = data
-        cost_full, _ = dp_full_line_ref(segments, h=h, L=L)
+        cost_full, _ = dp_full(segments, h=h, L=L)
         baseline = _baseline_cost(segments, h, L)
         assert cost_full <= baseline + tol
 
@@ -158,8 +158,8 @@ if HAVE_HYPOTHESIS:
     @given(dp_full_instances())
     def test_dp_full_monotonicity_in_L(data, tol: float) -> None:
         segments, h, L = data
-        cost_full, _ = dp_full_line_ref(segments, h=h, L=L)
-        cost_loose, _ = dp_full_line_ref(segments, h=h, L=1.2 * L)
+        cost_full, _ = dp_full(segments, h=h, L=L)
+        cost_loose, _ = dp_full(segments, h=h, L=1.2 * L)
         assert cost_loose <= cost_full + tol
 
 
@@ -167,9 +167,9 @@ if HAVE_HYPOTHESIS:
     @given(dp_full_instances())
     def test_dp_full_reflection_invariance(data, tol: float) -> None:
         segments, h, L = data
-        cost_full, _ = dp_full_line_ref(segments, h=h, L=L)
+        cost_full, _ = dp_full(segments, h=h, L=L)
         reflected = reflect_segments(segments)
-        cost_ref, _ = dp_full_line_ref(reflected, h=h, L=L)
+        cost_ref, _ = dp_full(reflected, h=h, L=L)
         assert math.isclose(cost_full, cost_ref, abs_tol=tol)
 
 else:  # pragma: no cover
@@ -199,9 +199,9 @@ def test_dp_full_scaling(scale: float, tol: float) -> None:
     segments = [(-6.0, -4.5), (-2.0, -1.0), (1.0, 2.0), (4.0, 5.5)]
     h = 2.5
     L = 24.0
-    cost_full, _ = dp_full_line_ref(segments, h=h, L=L)
+    cost_full, _ = dp_full(segments, h=h, L=L)
     scaled_segments = scale_instance(segments, scale)
-    scaled_cost, _ = dp_full_line_ref(
+    scaled_cost, _ = dp_full(
         scaled_segments, h=h * scale, L=L * scale
     )
     assert math.isclose(scaled_cost, cost_full * scale, abs_tol=1e-5)
@@ -211,7 +211,7 @@ def test_dp_full_insensitive_to_eps_slivers(tol: float, eps: float) -> None:
     segments = [(-5.0, -3.0), (-0.5, -0.4), (0.4, 0.5), (2.0, 3.5)]
     h = 2.0
     L = 20.0
-    base_cost, _ = dp_full_line_ref(segments, h=h, L=L)
+    base_cost, _ = dp_full(segments, h=h, L=L)
     delta = min(tol, eps) / 2.0
     segments_perturbed = [
         (-5.0, -3.0),
@@ -219,5 +219,5 @@ def test_dp_full_insensitive_to_eps_slivers(tol: float, eps: float) -> None:
         (0.4 - delta, 0.5 + delta),
         (2.0, 3.5),
     ]
-    aug_cost, _ = dp_full_line_ref(segments_perturbed, h=h, L=L)
+    aug_cost, _ = dp_full(segments_perturbed, h=h, L=L)
     assert math.isclose(base_cost, aug_cost, abs_tol=1e-5)

@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import os
-import random
-
 import pytest
 
 try:
@@ -12,7 +9,12 @@ except ImportError:  # pragma: no cover
     HealthCheck = None
 
 try:
-    from coverage_planning.algs.geometry import EPS
+    from coverage_planning.common.constants import (
+        EPS_GEOM,
+        RNG_SEEDS,
+        TOL_NUM,
+        seed_everywhere,
+    )
 except ImportError:  # pragma: no cover - layout fallback
     import sys
     from pathlib import Path
@@ -20,29 +22,23 @@ except ImportError:  # pragma: no cover - layout fallback
     REPO_ROOT = Path(__file__).resolve().parents[1]
     if str(REPO_ROOT) not in sys.path:
         sys.path.append(str(REPO_ROOT))
-    from coverage_planning.algs.geometry import EPS
+    from coverage_planning.common.constants import (
+        EPS_GEOM,
+        RNG_SEEDS,
+        TOL_NUM,
+        seed_everywhere,
+    )
 
 
-TOL = 1e-6
-DEFAULT_SEED = 20241028
-
-random.seed(DEFAULT_SEED)
-os.environ.setdefault("PYTHONHASHSEED", str(DEFAULT_SEED))
-
-try:  # pragma: no cover - optional dependency
-    import numpy as np
-
-    np.random.seed(DEFAULT_SEED)
-except ImportError:
-    np = None  # type: ignore[assignment]
-
+TEST_SEED = RNG_SEEDS.get("tests", 1337)
+seed_everywhere(TEST_SEED)
 
 if settings is not None:  # pragma: no branch
     settings.register_profile(
         "ci",
         max_examples=60,
         deadline=None,
-        seed=DEFAULT_SEED,
+        seed=TEST_SEED,
         print_blob=True,
         suppress_health_check=(
             HealthCheck.filter_too_much,
@@ -58,9 +54,9 @@ def pytest_configure(config: pytest.Config) -> None:  # pragma: no cover
 
 @pytest.fixture(scope="session")
 def tol() -> float:
-    return TOL
+    return TOL_NUM
 
 
 @pytest.fixture(scope="session")
 def eps() -> float:
-    return EPS
+    return EPS_GEOM

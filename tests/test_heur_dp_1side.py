@@ -11,7 +11,7 @@ import random
 import pytest
 
 from coverage_planning.algs.heuristics.dp_one_side_heur import dp_one_side
-from coverage_planning.algs.geometry import tour_length, EPS
+from coverage_planning.algs.geometry import tour_length
 
 # ---------------------------------------------------------------------------
 #  Helper

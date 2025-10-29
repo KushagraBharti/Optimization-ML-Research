@@ -5,7 +5,7 @@ Unit tests for Greedy-with-Projection (GSP) on a single segment.
 
 import math
 from coverage_planning.algs.heuristics.gsp_single import greedy_min_length_one_segment
-from coverage_planning.algs.geometry import tour_length, EPS
+from coverage_planning.algs.geometry import tour_length
 
 def test_gsp_exact_threshold():
     seg = (0.0, 4.0)

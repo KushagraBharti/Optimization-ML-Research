@@ -17,7 +17,7 @@ except ImportError:  # pragma: no cover
     st = None  # type: ignore[assignment]
 
 try:
-    from coverage_planning.algs.reference import dp_one_side_ref
+    from coverage_planning.algs.reference import dpos as dpos
 except ImportError:  # pragma: no cover - layout fallback
     import sys
     from pathlib import Path
@@ -25,7 +25,7 @@ except ImportError:  # pragma: no cover - layout fallback
     REPO_ROOT = Path(__file__).resolve().parents[1]
     if str(REPO_ROOT) not in sys.path:
         sys.path.append(str(REPO_ROOT))
-    from coverage_planning.algs.reference import dp_one_side_ref
+    from coverage_planning.algs.reference import dpos as dpos
 
 from coverage_planning.algs.geometry import tour_length, find_maximal_p
 from tests.test_utils import (
@@ -50,7 +50,7 @@ def test_dpos_single_segment(tol: float) -> None:
     segments = [(0.0, 4.0)]
     h = 2.5
     L = 40.0
-    Sigma, C = dp_one_side_ref(segments, h=h, L=L)
+    Sigma, C = dpos(segments, h=h, L=L)
     assert len(Sigma) == len(C) == 1
     idx = _find_idx(C, segments[0][1])
     expected = tour_length(segments[0][0], segments[0][1], h)
@@ -61,7 +61,7 @@ def test_dpos_two_segments_sum_lengths(tol: float) -> None:
     segments = [(0.0, 2.0), (3.5, 5.0)]
     h = 2.0
     L = 16.0
-    Sigma, C = dp_one_side_ref(segments, h=h, L=L)
+    Sigma, C = dpos(segments, h=h, L=L)
     b_last = segments[-1][1]
     idx = _find_idx(C, b_last)
     expected = oracle_min_length_one_side(segments, h, L)
@@ -76,7 +76,7 @@ def test_dpos_case_three_transition(tol: float) -> None:
     ]
     h = 1.3343911582849786
     L = 16.165898616030113
-    Sigma, C = dp_one_side_ref(segments, h=h, L=L)
+    Sigma, C = dpos(segments, h=h, L=L)
     q = segments[-1][1]
     idx_q = _find_idx(C, q)
     p_star = find_maximal_p(q, h, L)
@@ -102,7 +102,7 @@ def test_dpos_candidates_include_right_endpoints(tol: float) -> None:
     segments = [(0.0, 2.0), (3.0, 3.6), (5.5, 6.2)]
     h = 1.5
     L = 15.0
-    Sigma, C = dp_one_side_ref(segments, h=h, L=L)
+    Sigma, C = dpos(segments, h=h, L=L)
     for _, b in segments:
         _find_idx(C, b)
     q = segments[-1][1]
@@ -116,7 +116,7 @@ def test_dpos_invalid_segment_length() -> None:
     h = 1.0
     L = tour_length(0.0, 5.0, h) - 1.0
     with pytest.raises(ValueError):
-        dp_one_side_ref(segments, h=h, L=L)
+        dpos(segments, h=h, L=L)
 
 
 # ---------------------------------------------------------------------------
@@ -143,7 +143,7 @@ if HAVE_HYPOTHESIS:
     @given(dpos_instances())
     def test_dpos_oracle_cross_check(data, tol: float) -> None:
         segments, h, L = data
-        Sigma, C = dp_one_side_ref(segments, h=h, L=L)
+        Sigma, C = dpos(segments, h=h, L=L)
         b_last = segments[-1][1]
         idx = _find_idx(C, b_last)
         oracle = oracle_min_length_one_side(segments, h, L)
@@ -154,10 +154,10 @@ if HAVE_HYPOTHESIS:
     @given(dpos_instances())
     def test_dpos_monotonicity_in_L(data, tol: float) -> None:
         segments, h, L = data
-        Sigma, C = dp_one_side_ref(segments, h=h, L=L)
+        Sigma, C = dpos(segments, h=h, L=L)
         idx = _find_idx(C, segments[-1][1])
         larger = 1.2 * L
-        Sigma2, C2 = dp_one_side_ref(segments, h=h, L=larger)
+        Sigma2, C2 = dpos(segments, h=h, L=larger)
         idx2 = _find_idx(C2, segments[-1][1])
         assert Sigma2[idx2] <= Sigma[idx] + tol
 
@@ -177,9 +177,9 @@ def test_dpos_prefix_costs_unchanged_with_extra_segment(tol: float) -> None:
     extra = (6.5, 7.3)
     h = 2.0
     L = 18.0
-    Sigma, C = dp_one_side_ref(segments, h=h, L=L)
+    Sigma, C = dpos(segments, h=h, L=L)
     segments_extended = segments + [extra]
-    Sigma_ext, C_ext = dp_one_side_ref(segments_extended, h=h, L=L)
+    Sigma_ext, C_ext = dpos(segments_extended, h=h, L=L)
     for seg in segments:
         idx = _find_idx(C, seg[1])
         idx_ext = _find_idx(C_ext, seg[1])
@@ -194,10 +194,10 @@ def test_dpos_scaling(scale: float, tol: float) -> None:
     segments = [(0.0, 2.2), (3.4, 4.5)]
     h = 1.8
     L = 20.0
-    Sigma, C = dp_one_side_ref(segments, h=h, L=L)
+    Sigma, C = dpos(segments, h=h, L=L)
     idx = _find_idx(C, segments[-1][1])
     scaled_segments = scale_instance(segments, scale)
-    Sigma_scaled, C_scaled = dp_one_side_ref(
+    Sigma_scaled, C_scaled = dpos(
         scaled_segments, h=h * scale, L=L * scale
     )
     idx_scaled = _find_idx(C_scaled, scaled_segments[-1][1])
@@ -211,6 +211,6 @@ def test_dpos_large_battery_coarsens(tol: float) -> None:
     h = 2.0
     base = tour_length(segments[0][0], segments[-1][1], h)
     L = base * 1.5
-    Sigma, C = dp_one_side_ref(segments, h=h, L=L)
+    Sigma, C = dpos(segments, h=h, L=L)
     idx = _find_idx(C, segments[-1][1])
     assert math.isclose(Sigma[idx], base, abs_tol=1e-5)

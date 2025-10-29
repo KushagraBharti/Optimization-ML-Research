@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import bisect
 import math
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from ..geometry import EPS, find_maximal_p, sort_segments, tour_length
@@ -259,6 +259,7 @@ def dp_one_side_tail(
     segments: List[Tuple[float, float]],
     h: float,
     L: float,
+    debug: Optional[Dict[str, Any]] = None,
 ) -> Tuple[List[float], List[float]]:
     if not segments:
         return [0.0], [0.0]
@@ -273,6 +274,7 @@ def dp_one_side_tail(
 
     Tail = [math.inf] * len(candidates)
     Tail_map: Dict[float, float] = {}
+    transitions_total = 0
 
     for idx in range(len(candidates) - 1, -1, -1):
         q = candidates[idx]
@@ -304,6 +306,7 @@ def dp_one_side_tail(
                 if length > L + EPS:
                     continue
                 candidate_cost = continuation + length
+                transitions_total += 1
                 if candidate_cost < best:
                     best = candidate_cost
         elif kind == "inseg" and pos_idx is not None:
@@ -315,6 +318,7 @@ def dp_one_side_tail(
                 continuation = Tail_map[candidates[tail_idx_r]]
             if continuation < math.inf:
                 best = min(best, L + continuation)
+                transitions_total += 1
 
             if seg_idx <= t - 1:
                 for j in range(seg_idx, t):
@@ -324,6 +328,7 @@ def dp_one_side_tail(
                     next_start = lefts[j + 1]
                     cont_cost = Tail_map[next_start]
                     candidate_cost = cont_cost + length
+                    transitions_total += 1
                     if candidate_cost < best:
                         best = candidate_cost
         else:
@@ -335,6 +340,17 @@ def dp_one_side_tail(
         Tail[idx] = best
         Tail_map[q] = best
 
+    if debug is not None:
+        debug.clear()
+        debug.update(
+            {
+                "candidate_count": len(candidates),
+                "table_size": len(Tail),
+                "transitions_total": transitions_total,
+                "candidates": list(candidates),
+            }
+        )
+
     return Tail, candidates
 
 
@@ -345,23 +361,61 @@ def dp_full_line_ref(
     segments: List[Tuple[float, float]],
     h: float,
     L: float,
+    debug: Optional[Dict[str, Any]] = None,
 ) -> Tuple[float, List[Tuple[float, float]]]:
     segs = _validate_full_segments(segments)
     if not segs:
+        if debug is not None:
+            debug.clear()
+            debug.update(
+                {
+                    "left": {"candidate_count": 0, "table_size": 0, "transitions_total": 0},
+                    "right": {"candidate_count": 0, "table_size": 0, "transitions_total": 0},
+                    "tail": {"candidate_count": 0, "table_size": 0, "transitions_total": 0},
+                    "bridge_checked_pairs": 0,
+                    "bridge_feasible_pairs": 0,
+                }
+            )
         return 0.0, []
 
     left_ref, right = _split_reflect(segs)
 
+    left_debug: Optional[Dict[str, Any]] = {} if debug is not None else None
+    right_debug: Optional[Dict[str, Any]] = {} if debug is not None else None
+    tail_debug: Optional[Dict[str, Any]] = {} if debug is not None else None
+
     if not left_ref:
-        Sigma_R, _ = dp_one_side_ref(right, h, L)
+        Sigma_R, _ = dp_one_side_ref(right, h, L, debug=right_debug)
+        if debug is not None:
+            debug.clear()
+            debug.update(
+                {
+                    "left": {"candidate_count": 0, "table_size": 0, "transitions_total": 0},
+                    "right": right_debug or {},
+                    "tail": {"candidate_count": 0, "table_size": 0, "transitions_total": 0},
+                    "bridge_checked_pairs": 0,
+                    "bridge_feasible_pairs": 0,
+                }
+            )
         return Sigma_R[-1], []
     if not right:
-        Sigma_L, _ = dp_one_side_ref(left_ref, h, L)
+        Sigma_L, _ = dp_one_side_ref(left_ref, h, L, debug=left_debug)
+        if debug is not None:
+            debug.clear()
+            debug.update(
+                {
+                    "left": left_debug or {},
+                    "right": {"candidate_count": 0, "table_size": 0, "transitions_total": 0},
+                    "tail": {"candidate_count": 0, "table_size": 0, "transitions_total": 0},
+                    "bridge_checked_pairs": 0,
+                    "bridge_feasible_pairs": 0,
+                }
+            )
         return Sigma_L[-1], []
 
-    Sigma_L, C_L = dp_one_side_ref(left_ref, h, L)
-    Sigma_R, _ = dp_one_side_ref(right, h, L)
-    Tail_R, C_tail_R = dp_one_side_tail(right, h, L)
+    Sigma_L, C_L = dp_one_side_ref(left_ref, h, L, debug=left_debug)
+    Sigma_R, _ = dp_one_side_ref(right, h, L, debug=right_debug)
+    Tail_R, C_tail_R = dp_one_side_tail(right, h, L, debug=tail_debug)
 
     Sigma_left_map = {c: Sigma_L[idx] for idx, c in enumerate(C_L)}
     Tail_right_map = {c: Tail_R[idx] for idx, c in enumerate(C_tail_R)}
@@ -369,10 +423,14 @@ def dp_full_line_ref(
     best_cost = Sigma_L[-1] + Sigma_R[-1]
     best_arg: Tuple[str, float | None, float | None] = ("no_bridge", None, None)
 
+    bridge_checked_pairs = 0
+    bridge_feasible_pairs = 0
+
     for P in C_L:
         p = -P
         left_cost = Sigma_left_map[P]
         for q in C_tail_R:
+            bridge_checked_pairs += 1
             tour_len = tour_length(p, q, h)
             if tour_len > L + EPS:
                 break
@@ -386,9 +444,23 @@ def dp_full_line_ref(
                 continue
             right_cost = Tail_right_map[q]
             total = left_cost + tour_len + right_cost
+            bridge_feasible_pairs += 1
             if total < best_cost:
                 best_cost = total
                 best_arg = ("bridge", P, q)
+
+    if debug is not None:
+        debug.clear()
+        debug.update(
+            {
+                "left": left_debug or {},
+                "right": right_debug or {},
+                "tail": tail_debug or {},
+                "bridge_checked_pairs": bridge_checked_pairs,
+                "bridge_feasible_pairs": bridge_feasible_pairs,
+                "best_mode": best_arg[0],
+            }
+        )
 
     return best_cost, []
 

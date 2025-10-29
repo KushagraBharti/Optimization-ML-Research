@@ -8,8 +8,9 @@ import time
 from typing import Iterable, List, Sequence, Tuple
 
 try:
-    from coverage_planning.algs.geometry import EPS, tour_length
-    from coverage_planning.algs.reference import greedy_min_tours_ref
+    from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
+    from coverage_planning.algs.geometry import tour_length
+    from coverage_planning.algs.reference import gs as greedy_min_tours_ref
 except ImportError:  # pragma: no cover - layout fallback
     import sys
     from pathlib import Path
@@ -17,11 +18,11 @@ except ImportError:  # pragma: no cover - layout fallback
     REPO_ROOT = Path(__file__).resolve().parents[1]
     if str(REPO_ROOT) not in sys.path:
         sys.path.append(str(REPO_ROOT))
-    from coverage_planning.algs.geometry import EPS, tour_length
-    from coverage_planning.algs.reference import greedy_min_tours_ref
+    from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
+    from coverage_planning.algs.geometry import tour_length
+    from coverage_planning.algs.reference import gs as greedy_min_tours_ref
 
-
-TOL = 1e-6
+TOL = TOL_NUM
 
 
 def parse_float_or_tuple(value: str) -> float | Tuple[float, ...]:
@@ -52,7 +53,7 @@ def check_cover_exact(
     segments: Sequence[Tuple[float, float]],
     tours: Sequence[Tuple[float, float]],
     *,
-    tol: float = 1e-7,
+    tol: float = TOL,
 ) -> None:
     for a, b in segments:
         pieces = []
@@ -194,7 +195,7 @@ def run_benchmark(args: argparse.Namespace) -> None:
                 rng, k_max=args.k, h=args.h, alpha=alpha, beta=beta
             )
             farthest = max(max(abs(a), abs(b)) for a, b in segments)
-            if 2.0 * math.hypot(farthest, args.h) <= L + EPS:
+            if 2.0 * math.hypot(farthest, args.h) <= L + EPS_GEOM:
                 instance_generated = True
                 break
         if not instance_generated:
