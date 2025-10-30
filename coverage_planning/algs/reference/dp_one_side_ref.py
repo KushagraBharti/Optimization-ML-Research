@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import bisect
 import math
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 try:
@@ -9,10 +10,36 @@ try:
 except ImportError:  # pragma: no cover
     from pathlib import Path
     import sys
+
     sys.path.append(str(Path(__file__).resolve().parents[3]))
     from coverage_planning.algs.geometry import EPS, find_maximal_p, tour_length
 
-__all__ = ["generate_candidates_one_side", "dp_one_side", "generate_candidates_one_side_ref", "dp_one_side_ref"]
+from coverage_planning.common.constants import TOL_NUM
+
+__all__ = [
+    "generate_candidates_one_side",
+    "dp_one_side",
+    "generate_candidates_one_side_ref",
+    "dp_one_side_ref",
+    "dp_one_side_with_plan",
+    "reconstruct_one_side_plan",
+]
+
+
+# ---------------------------------------------------------------------------
+#  Plan data structures
+# ---------------------------------------------------------------------------
+@dataclass(frozen=True)
+class OneSidePlan:
+    """Back-pointer data allowing deterministic reconstruction of tours."""
+
+    prev_index: Tuple[int, ...]
+    kinds: Tuple[str, ...]
+    edges: Tuple[Tuple[float, float], ...]
+
+    def __post_init__(self) -> None:
+        if not (len(self.prev_index) == len(self.kinds) == len(self.edges)):
+            raise ValueError("Plan components must share identical length")
 
 
 # ---------------------------------------------------------------------------
@@ -157,29 +184,36 @@ def _generate_candidates_validated(
     return sorted(candidates)
 
 
-def generate_candidates_one_side(
+def _prefer_transition(
+    new_cost: float,
+    new_edge: Tuple[float, float],
+    new_prev: int,
+    best_cost: float,
+    best_edge: Tuple[float, float] | None,
+    best_prev: int | None,
+    *,
+    tol: float,
+) -> bool:
+    if new_cost < best_cost - tol:
+        return True
+    if abs(new_cost - best_cost) > tol:
+        return False
+    if best_edge is None or new_edge < best_edge:
+        return True
+    if new_edge == best_edge and (best_prev is None or new_prev < best_prev):
+        return True
+    return False
+
+
+def _dp_one_side_core(
     segments: List[Tuple[float, float]],
     h: float,
     L: float,
-) -> List[float]:
-    """Generate the candidate set C for Algorithm 3 (exact DPOS)."""
-    segs = _validate_segments(segments, h, L)
-    return _generate_candidates_validated(segs, h, L)
-
-
-# ---------------------------------------------------------------------------
-#  Dynamic programming (Algorithm 3)
-# ---------------------------------------------------------------------------
-def dp_one_side(
-    segments: List[Tuple[float, float]],
-    h: float,
-    L: float,
+    *,
     debug: Optional[Dict[str, Any]] = None,
-) -> Tuple[List[float], List[float]]:
-    """Run Algorithm 3 (DPOS) on the right half-line.
-
-    Returns (Sigma, C) where Sigma[k] is ?*(C[k]) and C is ascending.
-    """
+    compute_plan: bool,
+    tol: float,
+) -> Tuple[List[float], List[float], Optional[OneSidePlan]]:
     segs = _validate_segments(segments, h, L)
     candidates = _generate_candidates_validated(segs, h, L)
     transitions_case2 = 0
@@ -193,14 +227,15 @@ def dp_one_side(
     if not candidates:
         raise RuntimeError("Candidate set generation produced an empty set")
 
-    # Map each segment right endpoint to its candidate index for ?*(b_{j-1}) lookups
     right_candidate_idx = []
     for b in rights:
         idx = _find_candidate_index(candidates, b)
         right_candidate_idx.append(idx)
 
     Sigma: List[float] = []
-    Sigma_map: Dict[float, float] = {}
+    plan_prev: List[int] = []
+    plan_edge: List[Tuple[float, float]] = []
+    plan_kind: List[str] = []
 
     for k, c in enumerate(candidates):
         try:
@@ -224,11 +259,16 @@ def dp_one_side(
         if kind == "before":
             value = tour_length(a1, c, h)
             Sigma.append(value)
-            Sigma_map[c] = value
+            if compute_plan:
+                plan_prev.append(-1)
+                plan_edge.append((a1, c))
+                plan_kind.append("case1")
             continue
 
-        # Cases 2 and 3 share inner minimisation bounds
-        best = math.inf
+        best_cost = math.inf
+        best_prev: int | None = None
+        best_edge: Tuple[float, float] | None = None
+        best_kind: Optional[str] = None
 
         if kind == "gap" and idx is not None:
             start = idx + 1
@@ -238,40 +278,87 @@ def dp_one_side(
                 length = tour_length(segs[j][0], c, h)
                 if length > L + EPS:
                     continue
-                prev = 0.0 if j == 0 else Sigma[right_candidate_idx[j - 1]]
-                cand = prev + length
+                prev_idx = -1 if j == 0 else right_candidate_idx[j - 1]
+                prev_cost = 0.0 if j == 0 else Sigma[prev_idx]
+                cand_cost = prev_cost + length
                 transitions_case2 += 1
                 transitions_total += 1
-                if cand < best:
-                    best = cand
-            if math.isinf(best):
+                edge = (segs[j][0], c)
+                if _prefer_transition(
+                    cand_cost,
+                    edge,
+                    prev_idx,
+                    best_cost,
+                    best_edge,
+                    best_prev,
+                    tol=tol,
+                ):
+                    best_cost = cand_cost
+                    best_prev = prev_idx
+                    best_edge = edge
+                    best_kind = "case2"
+            if math.isinf(best_cost):
                 raise ValueError(f"No feasible Case 2 transition for candidate {c:.6f}")
         elif kind == "inseg" and idx is not None:
-            p_idx = _find_candidate_index(candidates, p)
+            try:
+                p_idx = _find_candidate_index(candidates, p)
+            except KeyError:
+                closest = min(range(len(candidates)), key=lambda i: abs(candidates[i] - p))
+                p_idx = closest
             if p_idx < k:
-                alt = L + Sigma[p_idx]
+                prev_cost = Sigma[p_idx]
+                alt_cost = L + prev_cost
                 transitions_case3 += 1
                 transitions_total += 1
-                if alt < best:
-                    best = alt
-            # inner minima, starting strictly after the segment containing p
+                edge = (candidates[p_idx], c)
+                if _prefer_transition(
+                    alt_cost,
+                    edge,
+                    p_idx,
+                    best_cost,
+                    best_edge,
+                    best_prev,
+                    tol=tol,
+                ):
+                    best_cost = alt_cost
+                    best_prev = p_idx
+                    best_edge = edge
+                    best_kind = "case3"
             for j in range(idx + 1, seg_idx + 1):
                 length = tour_length(segs[j][0], c, h)
                 if length > L + EPS:
                     continue
-                prev = 0.0 if j == 0 else Sigma[right_candidate_idx[j - 1]]
-                cand = prev + length
+                prev_idx = -1 if j == 0 else right_candidate_idx[j - 1]
+                prev_cost = 0.0 if j == 0 else Sigma[prev_idx]
+                cand_cost = prev_cost + length
                 transitions_case3 += 1
                 transitions_total += 1
-                if cand < best:
-                    best = cand
-            if math.isinf(best):
+                edge = (segs[j][0], c)
+                if _prefer_transition(
+                    cand_cost,
+                    edge,
+                    prev_idx,
+                    best_cost,
+                    best_edge,
+                    best_prev,
+                    tol=tol,
+                ):
+                    best_cost = cand_cost
+                    best_prev = prev_idx
+                    best_edge = edge
+                    best_kind = "case3"
+            if math.isinf(best_cost):
                 raise ValueError(f"No feasible Case 3 transition for candidate {c:.6f}")
         else:
             raise ValueError("Unexpected classification for maximal start position")
 
-        Sigma.append(best)
-        Sigma_map[c] = best
+        Sigma.append(best_cost)
+        if compute_plan:
+            if best_edge is None or best_kind is None:
+                raise RuntimeError("Plan transition recording failed")
+            plan_prev.append(best_prev if best_prev is not None else -1)
+            plan_edge.append(best_edge)
+            plan_kind.append(best_kind)
 
     if debug is not None:
         debug.clear()
@@ -286,6 +373,47 @@ def dp_one_side(
             }
         )
 
+    plan = None
+    if compute_plan:
+        plan = OneSidePlan(
+            prev_index=tuple(plan_prev),
+            kinds=tuple(plan_kind),
+            edges=tuple((float(p), float(q)) for p, q in plan_edge),
+        )
+    return Sigma, candidates, plan
+
+
+def generate_candidates_one_side(
+    segments: List[Tuple[float, float]],
+    h: float,
+    L: float,
+) -> List[float]:
+    """Generate the candidate set C for Algorithm 3 (exact DPOS)."""
+    segs = _validate_segments(segments, h, L)
+    return _generate_candidates_validated(segs, h, L)
+
+
+# ---------------------------------------------------------------------------
+#  Dynamic programming (Algorithm 3)
+# ---------------------------------------------------------------------------
+def dp_one_side(
+    segments: List[Tuple[float, float]],
+    h: float,
+    L: float,
+    debug: Optional[Dict[str, Any]] = None,
+) -> Tuple[List[float], List[float]]:
+    """Run Algorithm 3 (DPOS) on the right half-line.
+
+    Returns (Sigma, C) where Sigma[k] is ?*(C[k]) and C is ascending.
+    """
+    Sigma, candidates, _ = _dp_one_side_core(
+        segments,
+        h,
+        L,
+        debug=debug,
+        compute_plan=False,
+        tol=TOL_NUM,
+    )
     return Sigma, candidates
 
 
@@ -301,6 +429,82 @@ def dp_one_side_ref(
     debug: Optional[Dict[str, Any]] = None,
 ) -> Tuple[List[float], List[float]]:
     return dp_one_side(segments, h, L, debug=debug)
+
+
+def dp_one_side_with_plan(
+    segments: List[Tuple[float, float]],
+    h: float,
+    L: float,
+    *,
+    tol: float = TOL_NUM,
+    debug: Optional[Dict[str, Any]] = None,
+) -> Tuple[List[float], List[float], OneSidePlan]:
+    """Variant of :func:`dp_one_side` that also records the optimal tours.
+
+    The returned plan can be decoded with :func:`reconstruct_one_side_plan`.
+    """
+    Sigma, candidates, plan = _dp_one_side_core(
+        segments,
+        h,
+        L,
+        debug=debug,
+        compute_plan=True,
+        tol=tol,
+    )
+    if plan is None:
+        raise RuntimeError("Plan extraction failed for one-side DP")
+    return Sigma, candidates, plan
+
+
+def reconstruct_one_side_plan(
+    candidates: Sequence[float],
+    plan: OneSidePlan,
+    *,
+    end_index: Optional[int] = None,
+) -> List[Tuple[float, float]]:
+    """Reconstruct the tours finishing at ``candidates[end_index]``.
+
+    Parameters
+    ----------
+    candidates:
+        The ascending candidate endpoints ``C`` returned by the DP.
+    plan:
+        Back-pointer state produced by :func:`dp_one_side_with_plan`.
+    end_index:
+        Optional index within ``candidates``. Defaults to the final index.
+
+    Returns
+    -------
+    List[Tuple[float, float]]
+        Tours in execution order covering the prefix up to ``end_index``.
+    """
+    if len(candidates) != len(plan.prev_index):
+        raise ValueError("Plan length mismatch with candidates")
+    if end_index is None:
+        end_index = len(candidates) - 1
+    if not (0 <= end_index < len(candidates)):
+        raise IndexError("end_index out of range")
+
+    tours: List[Tuple[float, float]] = []
+    idx = end_index
+    visited = set()
+    while idx >= 0:
+        if idx in visited:
+            raise RuntimeError("Cycle detected while reconstructing plan")
+        visited.add(idx)
+        tours.append(plan.edges[idx])
+        prev_idx = plan.prev_index[idx]
+        if prev_idx == -1:
+            break
+        idx = prev_idx
+    else:  # pragma: no cover - defensive
+        raise RuntimeError("Failed to reach start of plan while reconstructing")
+
+    if plan.prev_index[idx] != -1:
+        raise RuntimeError("Plan reconstruction did not terminate at sentinel")
+
+    tours.reverse()
+    return tours
 
 
 if __name__ == "__main__":

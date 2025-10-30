@@ -1,0 +1,24 @@
+*** Begin Patch
+*** Update File: scripts/qc_dataset.py
+@@
+-def load_jsonl(path: Path) -> List[Dict[str, object]]:
+-    records: List[Dict[str, object]] = []
+-    with path.open("r", encoding="utf-8") as handle:
+-        for line in handle:
+-            if line.strip():
+-                records.append(eval_json(line))
+-    return records
+-
+-
+-def eval_json(text: str) -> Dict[str, object]:
+-    import json
+-
+-    return json.loads(text)
++def load_jsonl(path: Path) -> List[Dict[str, object]]:
++    records: List[Dict[str, object]] = []
++    with path.open("r", encoding="utf-8") as handle:
++        for line in handle:
++            if line.strip():
++                records.append(json.loads(line))
++    return records
+*** End Patch

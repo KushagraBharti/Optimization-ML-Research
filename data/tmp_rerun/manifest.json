@@ -1,0 +1,130 @@
+{
+  "bridge_counts": {
+    "no_bridge": 3700
+  },
+  "bucket_counts": {
+    "L_regime:roomy": 3700,
+    "bridge:bridge-ambiguous": 40,
+    "bridge:bridge-useful": 1265,
+    "bridge:bridge-useless": 2395,
+    "difficulty:easy": 1927,
+    "difficulty:medium": 1773,
+    "family:clustered": 924,
+    "family:step_gap": 927,
+    "family:straddlers": 924,
+    "family:uniform": 925,
+    "side:one_sided": 476,
+    "side:straddling": 2702,
+    "side:two_sided": 522
+  },
+  "config": {
+    "families": [
+      "uniform",
+      "clustered",
+      "step_gap",
+      "straddlers"
+    ],
+    "family_config": {
+      "L_mode": "mixed",
+      "cluster_count_range": [
+        2,
+        4
+      ],
+      "cluster_spread_ratio": [
+        0.05,
+        0.2
+      ],
+      "h_range": [
+        5.0,
+        40.0
+      ],
+      "margin_multiple": 12.0,
+      "max_attempts": 256,
+      "max_len": 40.0,
+      "min_gap": 0.5,
+      "min_len": 1.0,
+      "n": null,
+      "n_extrap_range": [
+        300,
+        500
+      ],
+      "n_range": [
+        2,
+        200
+      ],
+      "roomy_multiplier_range": [
+        1.3,
+        3.0
+      ],
+      "side_mix": [
+        0.4,
+        0.4,
+        0.2
+      ],
+      "step_gap_large_factor": [
+        4.0,
+        8.0
+      ],
+      "step_gap_small_factor": [
+        1.0,
+        2.5
+      ],
+      "step_length_long_factor": [
+        4.0,
+        8.0
+      ],
+      "step_length_short_factor": [
+        1.0,
+        2.5
+      ],
+      "straddle_fraction": [
+        0.15,
+        0.35
+      ],
+      "tight_delta_fraction": [
+        0.05,
+        0.15
+      ],
+      "tight_probability": 0.5,
+      "use_extrapolation": false,
+      "x_extent": [
+        50.0,
+        200.0
+      ]
+    },
+    "format": "parquet",
+    "near_gap_pct": 0.03,
+    "near_k": 3,
+    "objective": "min_length",
+    "seed": 1337
+  },
+  "counts_per_split": {
+    "extrap": 500,
+    "shifted": 500,
+    "stress": 200,
+    "test": 500,
+    "train": 2000
+  },
+  "dp_candidate_summary": {
+    "count": 3700.0,
+    "max": 715.0,
+    "mean": 135.08,
+    "p50": 88.0,
+    "p90": 352.0,
+    "p95": 427.0
+  },
+  "failures": {
+    "labeling": 9
+  },
+  "family_counts": {
+    "clustered": 924,
+    "step_gap": 927,
+    "straddlers": 924,
+    "uniform": 925
+  },
+  "generated_at": "2025-10-30T00:34:07.151062+00:00",
+  "near_opt_mean": 2.8013513513513515,
+  "skipped": {
+    "full_split": 330
+  }
+}

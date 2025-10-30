@@ -216,8 +216,23 @@ def validate_sample(sample: Sample) -> None:
             if length > L + TOL_NUM:
                 raise ValueError(f"tour #{idx} exceeds battery budget: length={length}, L={L}")
         for seg_idx, (a, b) in enumerate(segments):
-            covered = any(p <= a + EPS_GEOM and q >= b - EPS_GEOM for p, q in tours)
-            if not covered:
+            pieces: List[Tuple[float, float]] = []
+            for p, q in tours:
+                lo, hi = (p, q) if p <= q else (q, p)
+                if hi < a - EPS_GEOM or lo > b + EPS_GEOM:
+                    continue
+                pieces.append((max(lo, a), min(hi, b)))
+            if not pieces:
+                raise ValueError(f"segment #{seg_idx} is not covered by gold tours")
+            pieces.sort()
+            coverage_start, coverage_end = pieces[0]
+            if coverage_start > a + EPS_GEOM:
+                raise ValueError(f"segment #{seg_idx} is not covered by gold tours")
+            for start, end in pieces[1:]:
+                if start > coverage_end + EPS_GEOM:
+                    raise ValueError(f"segment #{seg_idx} is not covered by gold tours")
+                coverage_end = max(coverage_end, end)
+            if coverage_end < b - EPS_GEOM:
                 raise ValueError(f"segment #{seg_idx} is not covered by gold tours")
 
     # Near-optimal labels must respect the same tolerance envelopes.
