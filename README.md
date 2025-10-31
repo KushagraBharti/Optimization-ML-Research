@@ -46,6 +46,31 @@ Run the deterministic driver that exercises all reference algorithms:
 python examples/run_all_algorithms.py
 ```
 
+### Reference vs Legacy Imports
+
+- `coverage_planning.gs`, `coverage_planning.gsp`, `coverage_planning.dpos`, `coverage_planning.dp_full`, `coverage_planning.dp_full_with_plan` now resolve to the **reference, paper-faithful** solvers.
+- Legacy heuristics remain available on purpose as `coverage_planning.legacy_gs`, `coverage_planning.legacy_gsp`, `coverage_planning.legacy_dpos`, and `coverage_planning.legacy_dp_full` (or under `coverage_planning.algs.heuristics`). They are fenced off from the data and learning pipelines.
+
+### Shared Constants
+
+Use `coverage_planning.common.constants` for tolerances, seeding, and utilities:
+
+- `EPS_GEOM`, `TOL_NUM` – canonical geometric/ numeric tolerances.
+- `DEFAULT_SEED`, `RNG_SEEDS` – deterministic seeds for tests, data, and benchmarks.
+- `seed_everywhere(seed)` – helper to initialise Python, NumPy, and (optionally) PyTorch RNGs.
+
+### Full-Line DP Entry Points
+
+- `coverage_planning.dp_full` returns the optimal cost only (fast QC checks).
+- `coverage_planning.dp_full_with_plan` returns `(cost, tours, meta)` and is used by the labelers and featurizer.
+- `coverage_planning.find_maximal_bridge_p` exposes the bridge-anchor helper for consumers that need direct access to the supporting geometry.
+
+### Learning Surfaces
+
+- `coverage_planning.learn.featurize.featurize_sample` rebuilds legality masks and graph features for imitation learning.
+- `coverage_planning.data.labelers.label_gold` generates solver-faithful gold labels; `make_sample` serialises them under the canonical schema.
+- See [`docs/REPO_STRUCTURE.md`](docs/REPO_STRUCTURE.md) for a concise overview of how instances flow through generators → labelers → featurisation.
+
 ### Benchmarks
 
 Each algorithm ships with a CSV-style benchmark under `benchmarks/`. Increase `--n` to run longer samples:
@@ -69,36 +94,54 @@ Property-based checks use [Hypothesis](https://hypothesis.readthedocs.io/); if t
 
 ## Repository Structure
 
-```
+`
 Optimization-ML-Research/
-├─ coverage_planning/
-│  ├─ algs/
-│  │  ├─ geometry.py
-│  │  └─ reference/
-│  │     ├─ dp_full_line_ref.py
-│  │     ├─ dp_one_side_ref.py
-│  │     ├─ gs_mintours_ref.py
-│  │     └─ gsp_single_ref.py
-├─ benchmarks/
-│  ├─ bench_dp_full.py
-│  ├─ bench_dpos.py
-│  ├─ bench_gs.py
-│  └─ bench_gsp.py
-├─ examples/
-│  └─ run_all_algorithms.py
-├─ tests/
-│  ├─ __init__.py
-│  ├─ conftest.py
-│  ├─ test_utils.py
-│  ├─ test_gs.py
-│  ├─ test_gsp.py
-│  ├─ test_dpos.py
-│  └─ test_dp_full.py
-├─ README.md
-├─ LICENSE
-├─ pyproject.toml
-└─ requirements.txt
-```
+|-- coverage_planning/
+|   |-- algs/
+|   |   |-- __init__.py
+|   |   |-- geometry.py
+|   |   |-- heuristics/  # legacy heuristics
+|   |   |-- reference/   # reference solvers
+|   |-- common/
+|   |   |-- constants.py
+|   |-- data/
+|   |   |-- gen_instances.py
+|   |   |-- labelers.py
+|   |   |-- _legacy_solvers_provider.py
+|   |-- eval/
+|   |   |-- metrics.py
+|   |-- learn/
+|       |-- featurize.py
+|       |-- mask_predicates.py
+|-- benchmarks/
+|   |-- README.md
+|   |-- bench_dp_full.py
+|   |-- bench_dpos.py
+|   |-- bench_gs.py
+|   |-- bench_gsp.py
+|   |-- micro_bench_small_medium.py
+|-- benchmarks_legacy/
+|   |-- README.md
+|   |-- benchmark_dp.py
+|   |-- benchmark_greedy.py
+|-- docs/
+|   |-- REPO_STRUCTURE.md
+|-- examples/
+|   |-- run_all_algorithms.py
+|-- scripts/
+|   |-- gen_dataset.py
+|   |-- qc_dataset.py
+|-- tests/
+|   |-- test_dp_full_plan_roundtrip.py
+|   |-- test_featurize.py
+|   |-- test_featurize_perf.py
+|   |-- test_mask_predicates.py
+|   |-- ...
+|-- README.md
+|-- LICENSE
+|-- pyproject.toml
+|-- requirements.txt
+`
 
 ## Next Directions
 

@@ -1,14 +1,18 @@
 # coverage_planning/dp_both.py
 """
-Full-line exact MinLength DP (Algorithm 4) using the new one-sided API.
+Full-line exact MinLength DP (Algorithm 4) using the heuristic one-sided API.
 """
 
 from __future__ import annotations
+
 import math
 from typing import List, Tuple
 
-from ..geometry import tour_length, log, EPS
-from .dp_one_side_heur import dp_one_side
+from coverage_planning.algs.geometry import log, tour_length
+from coverage_planning.algs.heuristics.dp_one_side_heur import dp_one_side
+from coverage_planning.common.constants import EPS_GEOM
+
+EPS = EPS_GEOM
 
 __all__ = ["dp_full_line"]
 

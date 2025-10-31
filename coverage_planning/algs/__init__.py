@@ -1,10 +1,9 @@
-"""Coverage planning package exports.
+"""Algorithm package entry points with reference solvers exposed by default."""
 
-Reference (paper-faithful) solvers are exported by default. Legacy heuristics remain
-available via the ``legacy_*`` aliases for backwards compatibility only.
-"""
+from __future__ import annotations
 
-from coverage_planning.algs import reference as reference
+import coverage_planning.algs.heuristics as heuristics
+import coverage_planning.algs.reference as reference
 from coverage_planning.algs.heuristics import (
     dp_full_line as legacy_dp_full,
     dp_one_side as legacy_dpos,
@@ -25,30 +24,8 @@ from coverage_planning.algs.reference import (
     reconstruct_one_side_plan,
     reconstruct_tail_plan,
 )
-from coverage_planning.algs.geometry import VERBOSE, find_maximal_p, tour_length
-from coverage_planning.common.constants import (
-    DEFAULT_SEED,
-    EPS_GEOM,
-    RNG_SEEDS,
-    TOL_NUM,
-    seed_everywhere,
-)
-
-# Backwards compatibility: preserve EPS name at package root.
-EPS = EPS_GEOM
 
 __all__ = [
-    # geometry & constants
-    "tour_length",
-    "find_maximal_p",
-    "VERBOSE",
-    "EPS",
-    "EPS_GEOM",
-    "TOL_NUM",
-    "DEFAULT_SEED",
-    "RNG_SEEDS",
-    "seed_everywhere",
-    # reference solvers
     "gs",
     "gsp",
     "dpos",
@@ -61,9 +38,8 @@ __all__ = [
     "FullLinePlanContext",
     "TailPlan",
     "find_maximal_bridge_p",
-    # module handles
     "reference",
-    # legacy heuristics
+    "heuristics",
     "legacy_gs",
     "legacy_gsp",
     "legacy_dpos",

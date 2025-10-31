@@ -16,8 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 
 from coverage_planning.algs.geometry import tour_length
-from coverage_planning.algs.reference import dpos, gs, gsp
-from coverage_planning.algs.reference.dp_full_line_ref import dp_full_line_ref
+from coverage_planning.algs.reference import dp_full, dpos, gs, gsp
 from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
 from coverage_planning.data.schemas import (
     GoldLabel,
@@ -26,7 +25,7 @@ from coverage_planning.data.schemas import (
     Sample,
     validate_sample,
 )
-from eval.metrics import candidate_size_summary
+from coverage_planning.eval.metrics import candidate_size_summary
 
 try:
     import pyarrow.parquet as pq  # type: ignore
@@ -164,7 +163,7 @@ def recompute_cost(sample: Sample, objective: str) -> float:
     if len(segments) == 1:
         _, tours = gsp(segments[0], h, L)
         return sum(tour_length(p, q, h) for p, q in tours)
-    cost, _ = dp_full_line_ref(segments, h, L)
+    cost, _ = dp_full(segments, h, L)
     return cost
 
 

@@ -7,7 +7,7 @@ import pytest
 
 from coverage_planning.algs.geometry import tour_length
 from coverage_planning.algs.reference import dpos
-from coverage_planning.algs.reference.dp_full_line_ref import dp_full_line_with_plan
+from coverage_planning.algs.reference import dp_full_with_plan
 from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
 from tests.test_utils import (
     check_cover_exact,
@@ -53,7 +53,7 @@ def _count_crossing_tours(tours: List[Tuple[float, float]]) -> int:
 def test_dp_full_line_plan_roundtrip(seed: int) -> None:
     segments, h, L = _sample_two_sided_instance(seed)
 
-    cost, tours, meta = dp_full_line_with_plan(segments, h, L)
+    cost, tours, meta = dp_full_with_plan(segments, h, L)
     assert tours, "Expected at least one tour from plan extraction"
 
     total = sum(tour_length(p, q, h) for p, q in tours)

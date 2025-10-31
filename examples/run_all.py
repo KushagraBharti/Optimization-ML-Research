@@ -6,10 +6,7 @@ import time
 from typing import List, Tuple
 
 import coverage_planning.algs.geometry as utils
-from coverage_planning.algs.heuristics.gs_mintours import greedy_min_tours
-from coverage_planning.algs.heuristics.gsp_single import greedy_min_length_one_segment
-from coverage_planning.algs.heuristics.dp_one_side_heur import dp_one_side
-from coverage_planning.algs.heuristics.dp_full_line_heur import dp_full_line
+from coverage_planning import dp_full, dpos, gsp, gs
 
 utils.VERBOSE = True
 SEP = "=" * 80
@@ -27,7 +24,7 @@ def run_greedy() -> None:
 
     print("Input segments :", segs)
     t0 = time.perf_counter()
-    count, tours = greedy_min_tours(segs, h, L)
+    count, tours = gs(segs, h=h, L=L)
     dt = time.perf_counter() - t0
 
     print(f"Result: {count} tour(s)")
@@ -44,7 +41,7 @@ def run_gsp() -> None:
 
     print("Input segment  :", seg)
     t0 = time.perf_counter()
-    count, tours = greedy_min_length_one_segment(seg, h, L)
+    count, tours = gsp(seg, h=h, L=L)
     dt = time.perf_counter() - t0
 
     print(f"Result: {count} tour(s)")
@@ -61,10 +58,10 @@ def run_dp_one_side() -> None:
 
     print("Input segments :", segs)
     t0 = time.perf_counter()
-    pref, _suf, C = dp_one_side(segs, h, L)
+    Sigma, C = dpos(segs, h=h, L=L)
     dt = time.perf_counter() - t0
 
-    print(f"Optimal total distance : {pref[-1]:.4f}")
+    print(f"Optimal total distance : {Sigma[-1]:.4f}")
     print(f"|C| = {len(C)}")
     print(f"Elapsed: {dt:.6f} s")
 
@@ -77,7 +74,7 @@ def run_dp_full_line() -> None:
 
     print("Input segments :", segs)
     t0 = time.perf_counter()
-    cost = dp_full_line(segs, h, L)
+    cost, _tours = dp_full(segs, h=h, L=L)
     dt = time.perf_counter() - t0
 
     print(f"Optimal total distance : {cost:.4f}")

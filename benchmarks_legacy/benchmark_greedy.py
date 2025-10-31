@@ -1,4 +1,4 @@
-# benchmark/benchmark_greedy.py
+# benchmarks_legacy/benchmark_greedy.py
 """
 Speed test for Greedy MinTours on large *pair-wise disjoint* instances.
 

@@ -1,3 +1,5 @@
+"""Reference dynamic programming solver for the full-line coverage problem."""
+
 from __future__ import annotations
 
 import bisect
@@ -5,28 +7,16 @@ import math
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
-try:
-    from ..geometry import EPS, find_maximal_p, sort_segments, tour_length
-    from .dp_one_side_ref import (
-        OneSidePlan,
-        dp_one_side_ref,
-        dp_one_side_with_plan,
-        reconstruct_one_side_plan,
-    )
-except ImportError:  # pragma: no cover
-    from pathlib import Path
-    import sys
+from coverage_planning.algs.geometry import find_maximal_p, sort_segments, tour_length
+from coverage_planning.algs.reference.dp_one_side_ref import (
+    OneSidePlan,
+    dp_one_side_ref,
+    dp_one_side_with_plan,
+    reconstruct_one_side_plan,
+)
+from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
 
-    sys.path.append(str(Path(__file__).resolve().parents[3]))
-    from coverage_planning.algs.geometry import EPS, find_maximal_p, sort_segments, tour_length
-    from coverage_planning.algs.reference.dp_one_side_ref import (
-        OneSidePlan,
-        dp_one_side_ref,
-        dp_one_side_with_plan,
-        reconstruct_one_side_plan,
-    )
-
-from coverage_planning.common.constants import TOL_NUM
+EPS = EPS_GEOM
 
 __all__ = [
     "dp_full_line_ref",
@@ -35,6 +25,7 @@ __all__ = [
     "reconstruct_tail_plan",
     "TailPlan",
     "FullLinePlanContext",
+    "find_maximal_bridge_p",
 ]
 
 
@@ -156,6 +147,11 @@ def _find_maximal_p_safe(q: float, h: float, L: float, *, tol: float = 1e-9) -> 
     if hi > q + 1e-9:
         raise RuntimeError("Computed p exceeds q")
     return hi
+
+
+def find_maximal_bridge_p(q: float, h: float, L: float, *, tol: float = 1e-9) -> float:
+    """Return the maximal left endpoint (``p``) for a bridge that reconnects at ``q``."""
+    return _find_maximal_p_safe(q, h, L, tol=tol)
 
 
 def _find_maximal_q_safe(p: float, h: float, L: float, *, tol: float = 1e-9) -> float:

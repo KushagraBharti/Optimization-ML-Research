@@ -1,16 +1,15 @@
+"""Reference greedy solver for the minimum-tour coverage objective."""
+
 from __future__ import annotations
 
 import math
 from collections import deque
 from typing import Deque, List, Tuple
 
-try:
-    from ..geometry import EPS, find_maximal_p, tour_length
-except ImportError:  # pragma: no cover
-    from pathlib import Path
-    import sys
-    sys.path.append(str(Path(__file__).resolve().parents[3]))
-    from coverage_planning.algs.geometry import EPS, find_maximal_p, tour_length
+from coverage_planning.algs.geometry import find_maximal_p, tour_length
+from coverage_planning.common.constants import EPS_GEOM
+
+EPS = EPS_GEOM
 
 __all__ = ["greedy_min_tours_ref"]
 

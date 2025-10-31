@@ -4,10 +4,14 @@ One-sided exact MinLength DP (DPOS) (Algorithm 3)
 """
 
 from __future__ import annotations
+
 import math
 from typing import List, Tuple
 
-from ..geometry import tour_length, find_maximal_p, sort_segments, log, EPS, VERBOSE
+from coverage_planning.algs.geometry import VERBOSE, find_maximal_p, log, sort_segments, tour_length
+from coverage_planning.common.constants import EPS_GEOM
+
+EPS = EPS_GEOM
 
 __all__ = ["generate_candidates_one_side", "dp_one_side"]
 

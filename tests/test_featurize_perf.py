@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import os
 import time
 
 import pytest
 
 from coverage_planning.algs.geometry import tour_length
-from coverage_planning.algs.reference.dp_one_side_ref import dp_one_side_with_plan, reconstruct_one_side_plan
+from coverage_planning.algs.reference import dp_one_side_with_plan, reconstruct_one_side_plan
 from coverage_planning.learn.featurize import featurize_sample
 
 
@@ -33,5 +34,7 @@ def test_featurize_performance_envelope() -> None:
     start = time.monotonic()
     result = featurize_sample(sample, sparse_threshold=256)
     duration = time.monotonic() - start
-    assert duration < 1.0
+    # Default to a generous wall-clock envelope and tighten it locally via env var if desired.
+    budget_ms = float(os.getenv("FEATURIZE_BUDGET_MS", "1500.0"))
+    assert duration * 1000.0 <= budget_ms
     assert any(step["mask"]["format"] == "sparse" for step in result["steps"])

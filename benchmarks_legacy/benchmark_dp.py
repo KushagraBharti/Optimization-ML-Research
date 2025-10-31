@@ -1,4 +1,4 @@
-# benchmark/benchmark_dp.py
+# benchmarks_legacy/benchmark_dp.py
 """
 Timing harness for the exact DP algorithms.
 

@@ -5,9 +5,12 @@ import math
 import pytest
 
 from coverage_planning.algs.geometry import tour_length
-from coverage_planning.algs.reference.dp_full_line_ref import dp_full_line_with_plan
+from coverage_planning.algs.reference import (
+    dp_full_with_plan,
+    dp_one_side_with_plan,
+    reconstruct_one_side_plan,
+)
 from coverage_planning.learn.transition_core import trim_covered
-from coverage_planning.algs.reference.dp_one_side_ref import dp_one_side_with_plan, reconstruct_one_side_plan
 from coverage_planning.learn.featurize import featurize_sample
 
 
@@ -78,7 +81,7 @@ def test_featurize_one_side_small() -> None:
 def test_featurize_full_line_small() -> None:
     segments = [(-4.0, -1.0), (1.0, 4.0)]
     h = 2.5
-    _, tours, _ = dp_full_line_with_plan(list(segments), h, 18.0)
+    _, tours, _ = dp_full_with_plan(list(segments), h, 18.0)
     assert tours, "solver returned empty tour set"
     sample = {
         "segments": segments,

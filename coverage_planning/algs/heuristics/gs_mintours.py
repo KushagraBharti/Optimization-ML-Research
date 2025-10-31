@@ -1,13 +1,17 @@
 # coverage_planning/greedy.py
 """
-Greedy Strategy (GS) — optimal for MinTours on disjoint segments. (algorithm 1)
+Greedy Strategy (GS) - optimal for MinTours on disjoint segments. (algorithm 1)
 """
 from __future__ import annotations
+
 import math
 from collections import deque
 from typing import List, Tuple
 
-from ..geometry import tour_length, find_maximal_p, sort_segments, EPS
+from coverage_planning.algs.geometry import find_maximal_p, sort_segments, tour_length
+from coverage_planning.common.constants import EPS_GEOM
+
+EPS = EPS_GEOM
 
 __all__ = ["greedy_min_tours"]
 

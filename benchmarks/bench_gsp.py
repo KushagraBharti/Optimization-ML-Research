@@ -1,3 +1,5 @@
+"""Benchmark harness for the reference GSP single-segment solver."""
+
 from __future__ import annotations
 
 import argparse
@@ -7,23 +9,19 @@ import statistics
 import time
 from typing import Iterable, List, Sequence, Tuple
 
-try:
-    from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
-    from coverage_planning.algs.geometry import tour_length
-    from coverage_planning.algs.reference import gsp as greedy_min_length_one_segment_ref
-except ImportError:  # pragma: no cover - layout fallback
-    import sys
-    from pathlib import Path
+import sys
+from pathlib import Path
 
-    REPO_ROOT = Path(__file__).resolve().parents[1]
-    if str(REPO_ROOT) not in sys.path:
-        sys.path.append(str(REPO_ROOT))
-    from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
-    from coverage_planning.algs.geometry import tour_length
-    from coverage_planning.algs.reference import gsp as greedy_min_length_one_segment_ref
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
 
+from coverage_planning.algs.geometry import tour_length
+from coverage_planning.algs.reference import gsp as greedy_min_length_one_segment
+from coverage_planning.common.constants import DEFAULT_SEED, EPS_GEOM, RNG_SEEDS, TOL_NUM
 
 TOL = TOL_NUM
+BENCH_SEED = RNG_SEEDS.get("bench", DEFAULT_SEED)
 
 
 def parse_float_or_tuple(value: str) -> float | Tuple[float, ...]:
@@ -179,7 +177,7 @@ def run_benchmark(args: argparse.Namespace) -> None:
 
         try:
             start = time.perf_counter()
-            count, tours = greedy_min_length_one_segment_ref(seg, h=args.h, L=L)
+            count, tours = greedy_min_length_one_segment(seg, h=args.h, L=L)
             elapsed = time.perf_counter() - start
             check_tours_feasible(args.h, L, tours)
             check_cover_exact([seg], tours)
@@ -226,7 +224,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Benchmark GSP single-segment reference algorithm.")
     parser.add_argument("--n", type=int, default=10000, help="Number of timed iterations.")
     parser.add_argument("--warmup", type=int, default=100, help="Number of warmup iterations.")
-    parser.add_argument("--seed", type=int, default=1337, help="Deterministic RNG seed.")
+    parser.add_argument("--seed", type=int, default=BENCH_SEED, help="Deterministic RNG seed.")
     parser.add_argument(
         "--k",
         type=int,

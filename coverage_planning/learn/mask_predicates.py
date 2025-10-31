@@ -1,3 +1,5 @@
+"""Helper predicates used by the transition and featurisation oracles."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -25,12 +27,19 @@ def normalize_intervals(intervals: Iterable[Interval], *, tol: float = TOL) -> L
     """Return canonical, sorted, non-overlapping intervals."""
     sorted_parts = sorted((min(a, b), max(a, b)) for a, b in intervals)
     merged: List[Interval] = []
+    touch_tol = max(tol * 10.0, 1e-9)
+    merge_tol = max(tol * 100000.0, touch_tol) + touch_tol
     for a, b in sorted_parts:
         if not merged:
             merged.append((a, b))
             continue
         prev_a, prev_b = merged[-1]
-        if a <= prev_b + tol:
+        gap = a - prev_b
+        if gap < -touch_tol:
+            merged[-1] = (prev_a, max(prev_b, b))
+        elif abs(gap) <= touch_tol:
+            merged.append((a, b))
+        elif gap <= merge_tol:
             merged[-1] = (prev_a, max(prev_b, b))
         else:
             merged.append((a, b))
@@ -95,17 +104,17 @@ def contiguous_cover(
     if not intervals:
         return None
     lo, hi = (p, q) if p <= q else (q, p)
-    start_idx = locate_interval(intervals, lo, tol=tol)
-    end_idx = locate_interval(intervals, hi, tol=tol)
-    if start_idx == -1 or end_idx == -1:
+    start_index = locate_interval(intervals, lo, tol=tol)
+    end_index = locate_interval(intervals, hi, tol=tol)
+    if start_index == -1 or end_index == -1:
         return None
-    for idx in range(start_idx, end_idx):
+    for idx in range(start_index, end_index):
         _, right = intervals[idx]
         nxt_left, _ = intervals[idx + 1]
         if right < nxt_left - tol:
             return None
-    sliced = tuple(intervals[idx] for idx in range(start_idx, end_idx + 1))
-    return IntervalCoverage(start_idx=start_idx, end_index=end_idx, intervals=sliced)
+    sliced = tuple(intervals[idx] for idx in range(start_index, end_index + 1))
+    return IntervalCoverage(start_index=start_index, end_index=end_index, intervals=sliced)
 
 
 def covers_contiguously(

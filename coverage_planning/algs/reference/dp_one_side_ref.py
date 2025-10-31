@@ -1,3 +1,5 @@
+"""Reference dynamic programming solver for the one-sided coverage problem."""
+
 from __future__ import annotations
 
 import bisect
@@ -5,16 +7,10 @@ import math
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-try:
-    from ..geometry import EPS, find_maximal_p, tour_length
-except ImportError:  # pragma: no cover
-    from pathlib import Path
-    import sys
+from coverage_planning.algs.geometry import find_maximal_p, tour_length
+from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
 
-    sys.path.append(str(Path(__file__).resolve().parents[3]))
-    from coverage_planning.algs.geometry import EPS, find_maximal_p, tour_length
-
-from coverage_planning.common.constants import TOL_NUM
+EPS = EPS_GEOM
 
 __all__ = [
     "generate_candidates_one_side",

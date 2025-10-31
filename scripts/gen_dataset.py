@@ -26,7 +26,7 @@ from coverage_planning.data.io_utils import (
 )
 from coverage_planning.data.labelers import label_gold, label_near_optimal, make_sample
 from coverage_planning.data.schemas import Sample
-from eval.metrics import candidate_size_summary
+from coverage_planning.eval.metrics import candidate_size_summary
 
 SHARD_CAPACITY = 50_000
 
