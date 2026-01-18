@@ -13,6 +13,7 @@ from typing import Dict, List, Sequence, Tuple
 from coverage_planning.algs.reference import (
     dp_full_with_plan,
     dp_one_side_with_plan,
+    gs,
     reconstruct_one_side_plan,
 )
 from coverage_planning.common.constants import EPS_GEOM, TOL_NUM
@@ -73,13 +74,29 @@ def label_gold(
 ) -> GoldLabel:
     """Generate a gold label for ``instance`` using the reference solvers."""
 
-    if objective != "min_length":
-        raise ValueError(f"Unsupported objective: {objective!r}")
-
     segments = list(instance.segments)
     h = float(instance.h)
     L = float(instance.L)
     mode = _categorise_segments(segments)
+
+    if objective == "min_tours":
+        tour_count, tours = gs(segments, h, L)
+        tours_tuple = tuple((float(p), float(q)) for p, q in tours)
+        bucket_tags = ["min_tours", f"gs:{mode}"]
+        gold_meta: Dict[str, object] = {
+            "objective": "min_tours",
+            "bucket_tags": bucket_tags,
+            "gs_meta": {
+                "tour_count": int(tour_count),
+                "orientation": mode,
+            },
+        }
+        if family is not None:
+            gold_meta["family"] = family
+        return GoldLabel(tours=tours_tuple, cost=float(tour_count), meta=gold_meta)
+
+    if objective != "min_length":
+        raise ValueError(f"Unsupported objective: {objective!r}")
 
     if mode == "right":
         Sigma, candidates, plan = dp_one_side_with_plan(segments, h, L, tol=TOL_NUM)
@@ -128,6 +145,7 @@ def label_gold(
     gold_meta: Dict[str, object] = {
         "dp_meta": dp_meta,
         "bucket_tags": bucket_tags,
+        "objective": "min_length",
     }
     if family is not None:
         gold_meta["family"] = family

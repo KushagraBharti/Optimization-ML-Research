@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, Sequence
+from typing import Any, Dict, Iterable, Mapping, Sequence
 
 try:  # Optional parquet support
     import pyarrow as pa  # type: ignore
@@ -12,7 +12,14 @@ except ImportError:  # pragma: no cover - optional dependency
     pa = None  # type: ignore
     pq = None  # type: ignore
 
-from coverage_planning.data.schemas import Sample, compute_instance_hash, sample_to_dict
+from coverage_planning.data.schemas import (
+    GoldLabel,
+    Instance,
+    NearOptimalLabel,
+    Sample,
+    compute_instance_hash,
+    sample_to_dict,
+)
 
 
 def _ensure_parent(path: Path) -> None:
@@ -55,3 +62,43 @@ def canonicalize_and_hash(
 ) -> str:
     normalized = tuple((float(a), float(b)) for a, b in segments)
     return compute_instance_hash(normalized, float(h), float(L))
+
+
+def sample_from_dict(payload: Mapping[str, Any]) -> Sample:
+    inst_data = payload["instance"]
+    instance = Instance(
+        segments=tuple((float(seg[0]), float(seg[1])) for seg in inst_data["segments"]),
+        h=float(inst_data["h"]),
+        L=float(inst_data["L"]),
+    )
+    gold_data = payload["gold"]
+    gold_tours = gold_data.get("tours")
+    gold = GoldLabel(
+        tours=None
+        if gold_tours is None
+        else tuple((float(t[0]), float(t[1])) for t in gold_tours),
+        cost=float(gold_data["cost"]),
+        meta=dict(gold_data.get("meta", {})),
+    )
+    near_opt: list[NearOptimalLabel] = []
+    for entry in payload.get("near_opt", []):
+        tours_entry = entry.get("tours")
+        near_opt.append(
+            NearOptimalLabel(
+                tours=None
+                if tours_entry is None
+                else tuple((float(t[0]), float(t[1])) for t in tours_entry),
+                cost=float(entry["cost"]),
+                gap_pct=float(entry.get("gap_pct", 0.0)),
+                meta=dict(entry.get("meta", {})),
+            )
+        )
+    return Sample(
+        instance=instance,
+        gold=gold,
+        near_opt=tuple(near_opt),
+        split_tag=str(payload.get("split_tag", "unspecified")),
+        seed=int(payload.get("seed", 0)),
+        code_commit=str(payload.get("code_commit", "UNKNOWN")),
+        python_version=str(payload.get("python_version", "UNKNOWN")),
+    )
