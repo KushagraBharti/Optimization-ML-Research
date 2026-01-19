@@ -1,0 +1,66 @@
+{
+  "bridge_counts": {
+    "no_bridge": 64
+  },
+  "bucket_counts": {
+    "full:no_bridge": 64,
+    "full_line": 64,
+    "one_side_left": 165,
+    "one_side_right": 141
+  },
+  "config": {
+    "families": [
+      "uniform",
+      "clustered"
+    ],
+    "family_config": {
+      "L_mode": "mixed",
+      "h_range": [
+        5.0,
+        40.0
+      ],
+      "max_len": 40.0,
+      "max_segments": 7,
+      "min_gap": 0.5,
+      "min_len": 1.0,
+      "side_mix": [
+        0.4,
+        0.4,
+        0.2
+      ],
+      "tight_probability": 0.5,
+      "use_extrapolation": false
+    },
+    "format": "jsonl",
+    "near_gap_pct": 0.03,
+    "near_k": 3,
+    "objective": "min_length",
+    "seed": 5150
+  },
+  "counts_per_split": {
+    "extrap": 50,
+    "shifted": 50,
+    "stress": 20,
+    "test": 50,
+    "train": 200
+  },
+  "dp_candidate_summary": {
+    "count": 370.0,
+    "max": 23.0,
+    "mean": 5.902702702702703,
+    "p50": 5.0,
+    "p95": 13.0
+  },
+  "failures": {
+    "labeling": 13
+  },
+  "family_counts": {
+    "clustered": 193,
+    "uniform": 177
+  },
+  "generated_at": "2026-01-18T08:17:03.714748+00:00",
+  "near_opt_mean": 0.0,
+  "skipped": {
+    "full_split": 59
+  }
+}
