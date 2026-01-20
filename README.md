@@ -33,7 +33,7 @@ where.exe python    # should point into .../anaconda3/envs/mlresearch
 python --version
 
 # install package in editable mode with dev dependencies
-pip install -e .[dev]
+pip install -e .
 ```
 
 ## Usage

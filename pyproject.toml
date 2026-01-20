@@ -9,10 +9,10 @@ description = "Exact and greedy algorithms for 1D drone-coverage planning"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Kushagra Bharti" }]
-dependencies = []
+dependencies = ["pytest", "ruff", "black", "mypy>=1.8", "pygame>=2.5.0"]
 
 [project.optional-dependencies]
-dev = ["pytest", "ruff", "black", "mypy>=1.8"]
+dev = ["pytest", "ruff", "black", "mypy>=1.8", "pygame>=2.5.0"]
 
 [tool.ruff]
 line-length = 100

@@ -1,10 +1,12 @@
 import os
 import time
 
+import pytest
+
+pygame = pytest.importorskip("pygame", reason="pygame not installed")
+
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
-
-import pygame  # type: ignore  # noqa: E402
 
 from coverage_planning.visualization.adapters import build_gs_events
 from coverage_planning.visualization.render import PygameRenderer
