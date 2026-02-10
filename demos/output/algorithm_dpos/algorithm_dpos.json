@@ -1,0 +1,60 @@
+{
+  "L": 22.0,
+  "candidate_count": 6,
+  "candidates": [
+    0.7222424879204485,
+    1.5,
+    3.2,
+    5.1,
+    7.1,
+    8.9
+  ],
+  "decision_count": 6,
+  "h": 4.0,
+  "metadata": {
+    "algorithm": "dpos_one_side",
+    "candidate_count": 6,
+    "target": 8.9
+  },
+  "segments": [
+    {
+      "a": 0.6,
+      "b": 1.5
+    },
+    {
+      "a": 2.4,
+      "b": 3.2
+    },
+    {
+      "a": 4.1,
+      "b": 5.1
+    },
+    {
+      "a": 6.2,
+      "b": 7.1
+    },
+    {
+      "a": 8.0,
+      "b": 8.9
+    }
+  ],
+  "total_length": 30.139074242468784,
+  "tour_count": 2,
+  "tours": [
+    {
+      "left": 0.6,
+      "length": 9.216751555890102,
+      "maximal": false,
+      "right": 1.5,
+      "tag": "case1_full_prefix"
+    },
+    {
+      "left": 2.4,
+      "length": 20.92232268657868,
+      "maximal": false,
+      "right": 8.9,
+      "tag": "case3_segment_left_j2"
+    }
+  ],
+  "valid": true
+}

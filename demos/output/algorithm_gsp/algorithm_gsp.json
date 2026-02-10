@@ -1,0 +1,41 @@
+{
+  "L": 22.0,
+  "h": 4.0,
+  "metadata": {
+    "algorithm": "gsp_one_segment",
+    "steps": [
+      {
+        "a": -8.0,
+        "action": "final_two_with_projection",
+        "b": 7.5,
+        "length_left": 20.94427190999916,
+        "length_right": 20.0
+      }
+    ]
+  },
+  "segments": [
+    {
+      "a": -8.0,
+      "b": 7.5
+    }
+  ],
+  "total_length": 40.94427190999916,
+  "tour_count": 2,
+  "tours": [
+    {
+      "left": -8.0,
+      "length": 20.94427190999916,
+      "maximal": false,
+      "right": 0.0,
+      "tag": "gsp-final-two-left"
+    },
+    {
+      "left": 0.0,
+      "length": 20.0,
+      "maximal": false,
+      "right": 7.5,
+      "tag": "gsp-final-two-right"
+    }
+  ],
+  "valid": true
+}

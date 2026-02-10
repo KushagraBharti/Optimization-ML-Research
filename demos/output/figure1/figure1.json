@@ -1,0 +1,37 @@
+{
+  "L": 30.0,
+  "h": 4.0,
+  "metadata": {
+    "description": "Notation example for S^j_pq coverage slice.",
+    "figure": 1
+  },
+  "segments": [
+    {
+      "a": -9.0,
+      "b": -7.0
+    },
+    {
+      "a": -4.0,
+      "b": -2.0
+    },
+    {
+      "a": 1.0,
+      "b": 4.0
+    },
+    {
+      "a": 6.0,
+      "b": 9.0
+    }
+  ],
+  "total_length": 24.815072906367327,
+  "tour_count": 1,
+  "tours": [
+    {
+      "left": -3.5,
+      "length": 24.815072906367327,
+      "maximal": false,
+      "right": 7.5,
+      "tag": "notation_tour"
+    }
+  ]
+}

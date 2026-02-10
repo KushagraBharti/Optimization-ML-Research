@@ -1,0 +1,419 @@
+{
+  "algorithm-dpos": {
+    "L": 22.0,
+    "candidate_count": 6,
+    "candidates": [
+      0.7222424879204485,
+      1.5,
+      3.2,
+      5.1,
+      7.1,
+      8.9
+    ],
+    "decision_count": 6,
+    "h": 4.0,
+    "metadata": {
+      "algorithm": "dpos_one_side",
+      "candidate_count": 6,
+      "target": 8.9
+    },
+    "segments": [
+      {
+        "a": 0.6,
+        "b": 1.5
+      },
+      {
+        "a": 2.4,
+        "b": 3.2
+      },
+      {
+        "a": 4.1,
+        "b": 5.1
+      },
+      {
+        "a": 6.2,
+        "b": 7.1
+      },
+      {
+        "a": 8.0,
+        "b": 8.9
+      }
+    ],
+    "total_length": 30.139074242468784,
+    "tour_count": 2,
+    "tours": [
+      {
+        "left": 0.6,
+        "length": 9.216751555890102,
+        "maximal": false,
+        "right": 1.5,
+        "tag": "case1_full_prefix"
+      },
+      {
+        "left": 2.4,
+        "length": 20.92232268657868,
+        "maximal": false,
+        "right": 8.9,
+        "tag": "case3_segment_left_j2"
+      }
+    ],
+    "valid": true
+  },
+  "algorithm-gs": {
+    "gs_linear": {
+      "L": 24.0,
+      "h": 4.0,
+      "metadata": {
+        "algorithm": "gs_min_tours_linear",
+        "steps": [
+          {
+            "chosen_tour": [
+              -8.0,
+              2.394033503253013
+            ],
+            "farthest": -8.0,
+            "one_tour_finish": false,
+            "remaining_before": [
+              [
+                -8.0,
+                -6.5
+              ],
+              [
+                -5.4,
+                -4.2
+              ],
+              [
+                -1.8,
+                -0.8
+              ],
+              [
+                1.5,
+                2.8
+              ],
+              [
+                4.2,
+                5.6
+              ],
+              [
+                6.7,
+                7.9
+              ]
+            ]
+          },
+          {
+            "chosen_tour": [
+              2.394033503253013,
+              7.9
+            ],
+            "farthest": 7.9,
+            "one_tour_finish": true,
+            "remaining_before": [
+              [
+                2.394033503253013,
+                2.8
+              ],
+              [
+                4.2,
+                5.6
+              ],
+              [
+                6.7,
+                7.9
+              ]
+            ]
+          }
+        ]
+      },
+      "segments": [
+        {
+          "a": -8.0,
+          "b": -6.5
+        },
+        {
+          "a": -5.4,
+          "b": -4.2
+        },
+        {
+          "a": -1.8,
+          "b": -0.8
+        },
+        {
+          "a": 1.5,
+          "b": 2.8
+        },
+        {
+          "a": 4.2,
+          "b": 5.6
+        },
+        {
+          "a": 6.7,
+          "b": 7.9
+        }
+      ],
+      "total_length": 43.022603205238134,
+      "tour_count": 2,
+      "tours": [
+        {
+          "left": -8.0,
+          "length": 23.99999999941908,
+          "maximal": true,
+          "right": 2.394033503253013,
+          "tag": "gs-max"
+        },
+        {
+          "left": 2.394033503253013,
+          "length": 19.022603205819053,
+          "maximal": false,
+          "right": 7.9,
+          "tag": "gs-finish"
+        }
+      ]
+    },
+    "gs_log": {
+      "L": 24.0,
+      "h": 4.0,
+      "metadata": {
+        "algorithm": "gs_min_tours_log",
+        "steps": [
+          {
+            "chosen_tour": [
+              -8.0,
+              2.394033503253013
+            ],
+            "farthest": -8.0,
+            "one_tour_finish": false,
+            "remaining_before": [
+              [
+                -8.0,
+                -6.5
+              ],
+              [
+                -5.4,
+                -4.2
+              ],
+              [
+                -1.8,
+                -0.8
+              ],
+              [
+                1.5,
+                2.8
+              ],
+              [
+                4.2,
+                5.6
+              ],
+              [
+                6.7,
+                7.9
+              ]
+            ]
+          },
+          {
+            "chosen_tour": [
+              2.394033503253013,
+              7.9
+            ],
+            "farthest": 7.9,
+            "one_tour_finish": true,
+            "remaining_before": [
+              [
+                2.394033503253013,
+                2.8
+              ],
+              [
+                4.2,
+                5.6
+              ],
+              [
+                6.7,
+                7.9
+              ]
+            ]
+          }
+        ]
+      },
+      "segments": [
+        {
+          "a": -8.0,
+          "b": -6.5
+        },
+        {
+          "a": -5.4,
+          "b": -4.2
+        },
+        {
+          "a": -1.8,
+          "b": -0.8
+        },
+        {
+          "a": 1.5,
+          "b": 2.8
+        },
+        {
+          "a": 4.2,
+          "b": 5.6
+        },
+        {
+          "a": 6.7,
+          "b": 7.9
+        }
+      ],
+      "total_length": 43.022603205238134,
+      "tour_count": 2,
+      "tours": [
+        {
+          "left": -8.0,
+          "length": 23.99999999941908,
+          "maximal": true,
+          "right": 2.394033503253013,
+          "tag": "gs-max"
+        },
+        {
+          "left": 2.394033503253013,
+          "length": 19.022603205819053,
+          "maximal": false,
+          "right": 7.9,
+          "tag": "gs-finish"
+        }
+      ]
+    },
+    "instance": {
+      "L": 24.0,
+      "h": 4.0,
+      "segments": [
+        [
+          -8.0,
+          -6.5
+        ],
+        [
+          -5.4,
+          -4.2
+        ],
+        [
+          -1.8,
+          -0.8
+        ],
+        [
+          1.5,
+          2.8
+        ],
+        [
+          4.2,
+          5.6
+        ],
+        [
+          6.7,
+          7.9
+        ]
+      ]
+    },
+    "same_count": true,
+    "same_total_length": true,
+    "validation": {
+      "linear_valid": true,
+      "log_valid": true
+    }
+  },
+  "algorithm-gsp": {
+    "L": 22.0,
+    "h": 4.0,
+    "metadata": {
+      "algorithm": "gsp_one_segment",
+      "steps": [
+        {
+          "a": -8.0,
+          "action": "final_two_with_projection",
+          "b": 7.5,
+          "length_left": 20.94427190999916,
+          "length_right": 20.0
+        }
+      ]
+    },
+    "segments": [
+      {
+        "a": -8.0,
+        "b": 7.5
+      }
+    ],
+    "total_length": 40.94427190999916,
+    "tour_count": 2,
+    "tours": [
+      {
+        "left": -8.0,
+        "length": 20.94427190999916,
+        "maximal": false,
+        "right": 0.0,
+        "tag": "gsp-final-two-left"
+      },
+      {
+        "left": 0.0,
+        "length": 20.0,
+        "maximal": false,
+        "right": 7.5,
+        "tag": "gsp-final-two-right"
+      }
+    ],
+    "valid": true
+  },
+  "algorithm-two-side": {
+    "L": 24.0,
+    "h": 4.0,
+    "metadata": {
+      "algorithm": "min_length_two_side",
+      "case": "independent",
+      "case_candidates": [
+        "independent",
+        "interior_projection"
+      ],
+      "left_tours": 1,
+      "middle": null,
+      "right_tours": 1
+    },
+    "segments": [
+      {
+        "a": -8.5,
+        "b": -7.0
+      },
+      {
+        "a": -5.9,
+        "b": -4.8
+      },
+      {
+        "a": -2.9,
+        "b": -2.0
+      },
+      {
+        "a": 1.8,
+        "b": 2.9
+      },
+      {
+        "a": 4.6,
+        "b": 5.7
+      },
+      {
+        "a": 7.2,
+        "b": 8.3
+      }
+    ],
+    "total_length": 40.46620244732978,
+    "tour_count": 2,
+    "tours": [
+      {
+        "left": -8.5,
+        "length": 20.366283069027546,
+        "maximal": false,
+        "right": -2.0,
+        "tag": "case1_full_prefix"
+      },
+      {
+        "left": 1.8,
+        "length": 20.099919378302232,
+        "maximal": false,
+        "right": 8.3,
+        "tag": "case1_full_prefix"
+      }
+    ],
+    "valid": true
+  }
+}

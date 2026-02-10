@@ -1,0 +1,256 @@
+{
+  "gs_linear": {
+    "L": 24.0,
+    "h": 4.0,
+    "metadata": {
+      "algorithm": "gs_min_tours_linear",
+      "steps": [
+        {
+          "chosen_tour": [
+            -8.0,
+            2.394033503253013
+          ],
+          "farthest": -8.0,
+          "one_tour_finish": false,
+          "remaining_before": [
+            [
+              -8.0,
+              -6.5
+            ],
+            [
+              -5.4,
+              -4.2
+            ],
+            [
+              -1.8,
+              -0.8
+            ],
+            [
+              1.5,
+              2.8
+            ],
+            [
+              4.2,
+              5.6
+            ],
+            [
+              6.7,
+              7.9
+            ]
+          ]
+        },
+        {
+          "chosen_tour": [
+            2.394033503253013,
+            7.9
+          ],
+          "farthest": 7.9,
+          "one_tour_finish": true,
+          "remaining_before": [
+            [
+              2.394033503253013,
+              2.8
+            ],
+            [
+              4.2,
+              5.6
+            ],
+            [
+              6.7,
+              7.9
+            ]
+          ]
+        }
+      ]
+    },
+    "segments": [
+      {
+        "a": -8.0,
+        "b": -6.5
+      },
+      {
+        "a": -5.4,
+        "b": -4.2
+      },
+      {
+        "a": -1.8,
+        "b": -0.8
+      },
+      {
+        "a": 1.5,
+        "b": 2.8
+      },
+      {
+        "a": 4.2,
+        "b": 5.6
+      },
+      {
+        "a": 6.7,
+        "b": 7.9
+      }
+    ],
+    "total_length": 43.022603205238134,
+    "tour_count": 2,
+    "tours": [
+      {
+        "left": -8.0,
+        "length": 23.99999999941908,
+        "maximal": true,
+        "right": 2.394033503253013,
+        "tag": "gs-max"
+      },
+      {
+        "left": 2.394033503253013,
+        "length": 19.022603205819053,
+        "maximal": false,
+        "right": 7.9,
+        "tag": "gs-finish"
+      }
+    ]
+  },
+  "gs_log": {
+    "L": 24.0,
+    "h": 4.0,
+    "metadata": {
+      "algorithm": "gs_min_tours_log",
+      "steps": [
+        {
+          "chosen_tour": [
+            -8.0,
+            2.394033503253013
+          ],
+          "farthest": -8.0,
+          "one_tour_finish": false,
+          "remaining_before": [
+            [
+              -8.0,
+              -6.5
+            ],
+            [
+              -5.4,
+              -4.2
+            ],
+            [
+              -1.8,
+              -0.8
+            ],
+            [
+              1.5,
+              2.8
+            ],
+            [
+              4.2,
+              5.6
+            ],
+            [
+              6.7,
+              7.9
+            ]
+          ]
+        },
+        {
+          "chosen_tour": [
+            2.394033503253013,
+            7.9
+          ],
+          "farthest": 7.9,
+          "one_tour_finish": true,
+          "remaining_before": [
+            [
+              2.394033503253013,
+              2.8
+            ],
+            [
+              4.2,
+              5.6
+            ],
+            [
+              6.7,
+              7.9
+            ]
+          ]
+        }
+      ]
+    },
+    "segments": [
+      {
+        "a": -8.0,
+        "b": -6.5
+      },
+      {
+        "a": -5.4,
+        "b": -4.2
+      },
+      {
+        "a": -1.8,
+        "b": -0.8
+      },
+      {
+        "a": 1.5,
+        "b": 2.8
+      },
+      {
+        "a": 4.2,
+        "b": 5.6
+      },
+      {
+        "a": 6.7,
+        "b": 7.9
+      }
+    ],
+    "total_length": 43.022603205238134,
+    "tour_count": 2,
+    "tours": [
+      {
+        "left": -8.0,
+        "length": 23.99999999941908,
+        "maximal": true,
+        "right": 2.394033503253013,
+        "tag": "gs-max"
+      },
+      {
+        "left": 2.394033503253013,
+        "length": 19.022603205819053,
+        "maximal": false,
+        "right": 7.9,
+        "tag": "gs-finish"
+      }
+    ]
+  },
+  "instance": {
+    "L": 24.0,
+    "h": 4.0,
+    "segments": [
+      [
+        -8.0,
+        -6.5
+      ],
+      [
+        -5.4,
+        -4.2
+      ],
+      [
+        -1.8,
+        -0.8
+      ],
+      [
+        1.5,
+        2.8
+      ],
+      [
+        4.2,
+        5.6
+      ],
+      [
+        6.7,
+        7.9
+      ]
+    ]
+  },
+  "same_count": true,
+  "same_total_length": true,
+  "validation": {
+    "linear_valid": true,
+    "log_valid": true
+  }
+}

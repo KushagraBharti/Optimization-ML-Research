@@ -1,0 +1,60 @@
+{
+  "L": 24.0,
+  "h": 4.0,
+  "metadata": {
+    "algorithm": "min_length_two_side",
+    "case": "independent",
+    "case_candidates": [
+      "independent",
+      "interior_projection"
+    ],
+    "left_tours": 1,
+    "middle": null,
+    "right_tours": 1
+  },
+  "segments": [
+    {
+      "a": -8.5,
+      "b": -7.0
+    },
+    {
+      "a": -5.9,
+      "b": -4.8
+    },
+    {
+      "a": -2.9,
+      "b": -2.0
+    },
+    {
+      "a": 1.8,
+      "b": 2.9
+    },
+    {
+      "a": 4.6,
+      "b": 5.7
+    },
+    {
+      "a": 7.2,
+      "b": 8.3
+    }
+  ],
+  "total_length": 40.46620244732978,
+  "tour_count": 2,
+  "tours": [
+    {
+      "left": -8.5,
+      "length": 20.366283069027546,
+      "maximal": false,
+      "right": -2.0,
+      "tag": "case1_full_prefix"
+    },
+    {
+      "left": 1.8,
+      "length": 20.099919378302232,
+      "maximal": false,
+      "right": 8.3,
+      "tag": "case1_full_prefix"
+    }
+  ],
+  "valid": true
+}
